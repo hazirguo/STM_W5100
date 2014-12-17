@@ -1,0 +1,4 @@
+#!/sbin/bash
+
+./run2 &
+./run0 &

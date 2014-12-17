@@ -1,0 +1,18 @@
+#
+# Configuration file for the equipment controller installation
+#
+
+#
+#  The following is an entry for each even/odd port pair that the 
+#  equipment controller cards use on this machine.  Each port
+#  pair can handle up to 8 cards.  If you have more than this and
+#  have cards with a different even/odd port pair, list another
+#  entry right below the initial entry.  For most installations,
+#  the one line is all you'll need.
+#
+#  The format is as follows: <even port>:<odd port>
+#
+# NOTE:  These numbers are assumed to be HEX values when processed by the
+#        program
+#
+300:301

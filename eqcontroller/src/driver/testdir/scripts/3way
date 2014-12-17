@@ -1,0 +1,74 @@
+# This is a test of 3 different ways of enabling and disabling
+# hardware:
+# By executing a manual sequence of manual commands ...
+# By executing a manual sequence of automatic commands ...
+# By executing a single automatic commands ...
+# For clarification, see the documentation of the ISA labeqc hardware.
+
+PORT: 300, 301
+
+# Fully manual enable on card 0, relay 1.
+# Start by activating the +12V drive pulse
+WRITE: 0, 1, F0
+# Wait 12 msec (4 for the on-board relay to close and 8 to enable)
+DELAY: 12
+# Send the +5V sense pulse
+WRITE: 0, 1, E0
+# Wait 4 msec for the pulse to stabilize
+DELAY: 4
+# Trigger the ADC
+WRITE: 0, 1, E1
+# Read the ADC 3 times (and only keep the last value)
+READ: 0, 1
+READ: 0, 1
+READ: 0, 1
+# Disconnect the drive relay (on the ISA board)
+WRITE: 0, 1, 80
+
+DELAY: 1000
+
+# Fully manual disable on card 0, relay 1.
+# Start by activating the -12V drive pulse
+WRITE: 0, 1, D0
+# Wait 12 msec (4 for the on-board relay to close and 8 to enable)
+DELAY: 12
+# Send the +5V sense pulse
+WRITE: 0, 1, E0
+# Wait 4 msec for the pulse to stabilize
+DELAY: 4
+# Trigger the ADC
+WRITE: 0, 1, E1
+# Read the ADC 3 times (and only keep the last value)
+READ: 0, 1
+READ: 0, 1
+READ: 0, 1
+# Disconnect the drive relay (on the ISA board)
+WRITE: 0, 1, 80
+
+DELAY: 1000
+
+# Enable using a manually timed sequence of automatic commands ...
+WRITE: 0, 1, 78
+DELAY: 12
+READ: 0, 1
+
+DELAY: 1000
+
+# Disable using a manually timed sequence of automatic commands ...
+WRITE: 0, 1, 58
+DELAY: 12
+READ: 0, 1
+
+DELAY: 1000
+
+# Enable with a single automatic command ...
+AUTO: 0, 1, 1
+
+DELAY: 1000
+
+#Disable with a single automatic command ...
+AUTO: 0, 1, 2
+
+DELAY: 1000
+
+

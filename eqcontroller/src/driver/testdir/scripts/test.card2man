@@ -1,0 +1,123 @@
+# Assign even and odd ports ... (Note: Bill ... 300 and 301 are HEX)
+PORT: 300, 301
+
+# Enable relay 1 on board 0 and verify that sending a disable before it
+# is done is ignored ... Repeat for board 1 and 2.
+# A successful enable should return a 130H (approximately, I think)
+WRITE: 2, 1, 78
+DELAY: 16
+# Read should return NOT BUSY and data of about 130H
+READ: 2, 1
+DELAY: 6
+# Read should return NOT BUSY and data of about 130H
+READ: 2, 1
+
+# Disable relay 1 on board 0 and verify that sending an enable before it
+# is done is ignored ... Repeat for board 1 and 2.
+# A successful disable should return a 050H (approximately, I think)
+WRITE: 2, 1, 58
+DELAY: 16
+# Read should return NOT BUSY and data of about 050H
+READ: 2, 1
+
+WRITE: 2, 1, 78
+DELAY: 16
+# Should return NOT BUSY and data of about 130H
+READ: 2, 1
+
+WRITE: 2, 1, 58
+DELAY: 16
+# Should return NOT BUSY and data of about 050H
+READ: 2, 1
+
+# Now start an interleaved DISBLE/ENABLE pair ...
+WRITE: 2, 2, 78
+DELAY: 16
+# Should return NOT BUSY and data of about 130H
+READ: 2, 2
+
+# Now start driving relay 25 which has nothing connected
+WRITE: 2, 25, 78
+DELAY: 16
+# Should return NOT BUSY and data of about 000H
+READ: 2, 25
+
+# Now start driving test relays 26, 27, and 28
+WRITE: 2, 26, 78
+DELAY: 16
+# Should return NOT BUSY and data of about 180H
+READ: 2, 26
+
+# Now start driving test relays 26, 27, and 28
+WRITE: 2, 27, 78
+DELAY: 16
+# Should return NOT BUSY, CURRENT LIMIT and data of about 000H
+READ: 2, 27
+
+# Now start driving relay 1 to make sure that it runs after the
+# current limit
+WRITE: 2, 1, 78
+DELAY: 16
+# Should return NOT BUSY and data of about 130H
+READ: 2, 1
+
+# Now start driving test relays 26, 27, and 28
+WRITE: 2, 28, 78
+DELAY: 16
+# Should return NOT BUSY and data of about 000H
+READ: 2, 28
+
+# Now start driving relay 1 to make sure that it runs after the
+# current limit
+WRITE: 2, 1, 78
+DELAY: 16
+# Should return NOT BUSY and data of about 130H
+READ: 2, 1
+
+# Now start an interleaved DISBLE/ENABLE pair ...
+WRITE: 2, 2, 58
+DELAY: 16
+# Should return NOT BUSY and data of about 050H
+READ: 2, 2
+
+# Now start driving relay 25 which has nothing connected
+WRITE: 2, 25, 58
+DELAY: 16
+# Should return NOT BUSY and data of about 000H
+READ: 2, 25
+
+# Now start driving test relays 26, 27, and 28
+WRITE: 2, 26, 58
+DELAY: 16
+# Should return NOT BUSY and data of about 180H
+READ: 2, 26
+
+# Now start driving test relays 26, 27, and 28
+WRITE: 2, 27, 58
+DELAY: 16
+# Should return NOT BUSY, CURRENT LIMIT and data of about 000H
+READ: 2, 27
+
+# Now start driving relay 1 to make sure that it runs after the
+# current limit
+WRITE: 2, 1, 58
+DELAY: 16
+# Should return NOT BUSY and data of about 050H
+READ: 2, 1
+
+# Now start driving test relays 26, 27, and 28
+WRITE: 2, 28, 58
+DELAY: 16
+# Should return NOT BUSY and data of about 000H
+READ: 2, 28
+
+# Now start driving relay 1 to make sure that it runs after the
+# current limit
+WRITE: 2, 1, 58
+DELAY: 16
+# Should return NOT BUSY and data of about 050H
+READ: 2, 1
+
+
+
+
