@@ -1,0 +1,84 @@
+# Assign even and odd ports ... (Note: Bill ... 300 and 301 are HEX)
+PORT: 300, 301
+
+# Enable relay 1 on board 0 and verify that sending a disable before it
+# is done is ignored ... Repeat for board 1 and 2.
+# A successful enable should return a 130H (approximately, I think)
+AUTO: 0, 1, 1
+# Read should return NOT BUSY and data of about 130H
+
+# Disable relay 1 on board 0 and verify that sending an enable before it
+# is done is ignored ... Repeat for board 1 and 2.
+# A successful disable should return a 050H (approximately, I think)
+AUTO: 0, 1, 2
+# Read should return NOT BUSY and data of about 050H
+
+AUTO: 0, 1, 1
+# Should return NOT BUSY and data of about 130H
+
+AUTO: 0, 1, 2
+# Should return NOT BUSY and data of about 050H
+
+# Now start an interleaved DISBLE/ENABLE pair ...
+AUTO: 0, 2, 1
+# Should return NOT BUSY and data of about 130H
+
+# Now start driving relay 25 which has nothing connected
+AUTO: 0, 25, 1
+# Should return NOT BUSY and data of about 000H
+
+# Now start driving test relays 26, 27, and 28
+AUTO: 0, 26, 1
+# Should return NOT BUSY and data of about 180H
+
+# Now start driving test relays 26, 27, and 28
+AUTO: 0, 27, 1
+# Should return NOT BUSY, CURRENT LIMIT and data of about 000H
+
+# Now start driving relay 1 to make sure that it runs after the
+# current limit
+AUTO: 0, 1, 1
+# Should return NOT BUSY and data of about 130H
+
+# Now start driving test relays 26, 27, and 28
+AUTO: 0, 28, 1
+# Should return NOT BUSY and data of about 000H
+
+# Now start driving relay 1 to make sure that it runs after the
+# current limit
+AUTO: 0, 1, 1
+# Should return NOT BUSY and data of about 130H
+
+# Now start an interleaved DISBLE/ENABLE pair ...
+AUTO: 0, 2, 2
+# Should return NOT BUSY and data of about 050H
+
+# Now start driving relay 25 which has nothing connected
+AUTO: 0, 25, 2
+# Should return NOT BUSY and data of about 000H
+
+# Now start driving test relays 26, 27, and 28
+AUTO: 0, 26, 2
+# Should return NOT BUSY and data of about 180H
+
+# Now start driving test relays 26, 27, and 28
+AUTO: 0, 27, 2
+# Should return NOT BUSY, CURRENT LIMIT and data of about 000H
+
+# Now start driving relay 1 to make sure that it runs after the
+# current limit
+AUTO: 0, 1, 2
+# Should return NOT BUSY and data of about 050H
+
+# Now start driving test relays 26, 27, and 28
+AUTO: 0, 28, 2
+# Should return NOT BUSY and data of about 000H
+
+# Now start driving relay 1 to make sure that it runs after the
+# current limit
+AUTO: 0, 1, 2
+# Should return NOT BUSY and data of about 050H
+
+
+
+

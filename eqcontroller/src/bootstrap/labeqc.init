@@ -1,0 +1,62 @@
+#!/bin/bash
+#
+# Equipment Controller startup script
+#
+# chkconfig: 345 99 27
+# description: Runs the equipment controller daemon and loads \
+# the driver
+#
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+RETVAL=0
+
+case "$1" in
+  start)
+	echo -n "Loading labeqc driver: "
+	insmod /lib/modules/misc/labeqc.ko
+	[ $RETVAL -eq 0 ] && echo_success
+	[ $RETVAL -ne 0 ] && echo_failure
+
+        rm -f /dev/labeqc
+        major=`awk "\\$2==\"labeqc\" {print \\$1}" /proc/devices`
+        mknod /dev/labeqc c $major 0
+        chgrp equip /dev/labeqc
+        chmod 775 /dev/labeqc
+
+	echo
+        sleep 2
+
+	echo -n "Starting the labeqd daemon: "
+	/usr/local/eqcontroller/bin/labeqd
+	RETVAL=$?
+	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/labeqd
+	[ $RETVAL -eq 0 ] && echo_success
+	[ $RETVAL -ne 0 ] && echo_failure
+	echo
+	;;
+  stop)
+	echo -n "Killing the labeqd daemon: "
+	killproc labeqd
+	RETVAL=$?
+	echo
+	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/labeqd
+
+	echo -n "Unloading labeqc driver: "
+        rmmod labeqc
+	[ $RETVAL -eq 0 ] && echo_success
+	[ $RETVAL -ne 0 ] && echo_failure
+        echo
+	;;
+  restart)
+	$0 stop
+	$0 start
+	;;
+  *)
+	echo "Usage: labeqc {start|stop|restart}"
+	exit 1
+esac
+
+exit 0
+

@@ -1,0 +1,50 @@
+#!/usr/bin/perl
+
+@ARGV == 2 or die "Usage: run_eqc CARD/CHANNEL action\n\tCARD = 0 - 8\n\tCHANNEL = 0 - 25 or ALL\n\taction = ON, OFF, SENSE, or STATUS\n
+Note: SENSE is the check of the interlock state of a properly wired interlock.\nSince we do not use STATUS normally (that applies a -5V signale) it is useful\n to help diagnose a reversed wiring connection.";
+
+my $prefix = "@PREFIX@";
+
+my ($card, $channel) = split /\//, shift(@ARGV);
+$channel = uc($channel);
+my $this_action = uc(shift(@ARGV));
+
+my %actions = ();
+$actions{"ON"} = 1;
+$actions{"OFF"} = 2;
+$actions{"SENSE"} = 3;
+$actions{"STATUS"} = 4;
+
+unless ($card >= 0 && $card <= 7) {
+	die "CARD must be between 0 and 7, inclusive.\n";
+}
+
+unless ( ($channel >= 1 && $channel <= 28) || $channel == "ALL" ) {
+	die "CHANNEL must be between 1 and 28, inclusive or equal 'ALL'\n";
+}
+
+unless ( $this_action eq "ON" || $this_action eq "OFF" ||
+	$this_action eq "SENSE" || $this_action eq "STATUS" ) {
+	die "action must be 'ON', 'OFF', 'SENSE', or 'STATUS'.\n";
+}
+
+open(CONF,"$prefix/etc/eqc.conf");
+# Commands will get piped to test_labeqc ...
+# The output of test_labeqc will simply go to STDOUT.
+open(COMMANDS, "| $prefix/bin/test_labeqc");
+while(<CONF>) {
+	if (/\d+:\d+/){
+		my ($evenport, $oddport) = split /:/;
+		print COMMANDS "PORT: $evenport, $oddport\n"
+	}
+}
+close(CONF);
+
+if ($channel eq "ALL") {
+	for ($i = 1; $i <= 25; $i++) {
+		print COMMANDS "AUTO: $card, $i, $actions{$this_action}\n"
+	}
+} else {
+	print COMMANDS "AUTO: $card, $channel, $actions{$this_action}\n"
+}
+close(COMMANDS);

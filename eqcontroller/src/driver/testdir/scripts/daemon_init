@@ -1,0 +1,31 @@
+# Assign even and odd ports ... (Note: Bill ... 300 and 301 are HEX)
+PORT: 300, 301
+
+# Check for master/slave status by executing a command to relay "0"
+# on each of the boards. Start by writing a command "7" to board 7,
+# a command "6" to board 6, etc.
+# A command sent to relay "0" should result in an echo of the command
+# when the card is read back.  (Note: the comand that was sent should
+# appear in the lower 8 bits of the "ADC word".
+# A board that is missing will return and ADC value of "FFF"
+# Any card that returns its card number (for example, if card 7
+# returns and ADC value of "07X" (where X is don't care)) is a
+# master.  Any card that returns an ADCvalue of "00X" is a slave
+# (except, of course, card 0 is required to be a master).
+WRITE: 7, 0, 7
+WRITE: 6, 0, 6
+WRITE: 5, 0, 5
+WRITE: 4, 0, 4
+WRITE: 3, 0, 3
+WRITE: 2, 0, 2
+WRITE: 1, 0, 1
+WRITE: 0, 0, 0
+READ: 7, 0
+READ: 6, 0
+READ: 5, 0
+READ: 4, 0
+READ: 3, 0
+READ: 2, 0
+READ: 1, 0
+READ: 0, 0
+

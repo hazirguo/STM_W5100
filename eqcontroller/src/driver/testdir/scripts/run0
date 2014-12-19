@@ -1,0 +1,3 @@
+#!/sbin/bash
+
+time ../test_labeqc test.card0auto > run0.out
