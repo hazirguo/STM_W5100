@@ -13,21 +13,21 @@
 #define SUBNET_MASK_3	255		
 #define SUBNET_MASK_4	0		
 
-#define PHY_ADDR_1	0x0c		/* Physical address */
-#define PHY_ADDR_2	0x29
-#define PHY_ADDR_3	0xab
-#define PHY_ADDR_4	0x7c
-#define PHY_ADDR_5	0x00
-#define PHY_ADDR_6	0x01
+#define PHY_ADDR_1	0x00		/* Physical address */
+#define PHY_ADDR_2	0x80
+#define PHY_ADDR_3	0xA3
+#define PHY_ADDR_4	0x9E
+#define PHY_ADDR_5	0xC5
+#define PHY_ADDR_6	0x75
 
 #define IP_ADDR_1	1		/* Local IP Address */
 #define IP_ADDR_2	0
 #define IP_ADDR_3	0
-#define IP_ADDR_4	221
+#define IP_ADDR_4	223
 
 /* Socket0 parameters */
 #define S0_PORT_1	0x13		/* Socket0 Port Number */
 #define S0_PORT_2	0x88
 
 
-#define S0_MODE	TCP_SERVER		/* Socket0 operation mode */
+#define S0_MODE		TCP_SERVER		/* Socket0 operation mode */

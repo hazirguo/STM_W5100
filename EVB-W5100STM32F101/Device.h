@@ -3,28 +3,10 @@
 
 typedef  unsigned char SOCKET;
 
-/* 24LC01 EEPROM地址 */
-#define EEPROM_ADDRESS  0xa0
-
 /* Timer2定时器计数 */
 unsigned int Timer2_Counter;
 
-/* ADC寄存器定义 */						 
-unsigned char ADC_state;
-signed short Temperature, temperature[8];	/* temperature为8次温度采集的AD值， Temperature为温度计算的结果值 */
-signed short Vref, vref[8];					/* vref为8次参考电压的采集值， Vref为参考电压的计算结果，该结果用于计算温度 */
-unsigned short Pot, pot[8];					/* pot为8次电位器电压的采集值，Pot为电压采集的计算结果 */
-unsigned char ADC_Complete;					/* 完成一次AD转换，ADC_Complete置1，处理完AD转换的数据，ADC_Complete清0
-											重新启动新的一次转换 */
-
 unsigned char Temp_Buffer[128];
-
-/* UART1数据缓冲区 */
-unsigned char UART_Rx_Buffer[128];			/* UART1接收数据缓冲区 */
-unsigned char UART_Tx_Buffer[128];			/* UART1发送数据缓冲区 */
-unsigned short RxCounter;					/* 接收数据字节数的计数 */
-unsigned short TxCounter, TxIndex;			/* 发送数据字节数的计数和发送字节索引 */
-unsigned char UART_DataReceive;				/* 接收到一个完整的数据包，该寄存器置1，处理完数据后该寄存器清0 */
 
 /* 端口数据缓冲区 */
 unsigned char Rx_Buffer[2000];				/* 端口接收数据缓冲区 */
@@ -84,7 +66,6 @@ extern unsigned char Detect_Gateway(void);
 extern void Socket_Init(SOCKET s);
 extern unsigned char Socket_Connect(SOCKET s);
 extern unsigned char Socket_Listen(SOCKET s);
-extern unsigned char Socket_UDP(SOCKET s);
 extern unsigned short S_rx_process(SOCKET s);
 extern unsigned char S_tx_process(SOCKET s, unsigned int size);
 extern void W5100_Interrupt_Process(void);

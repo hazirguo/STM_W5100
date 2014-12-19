@@ -29,7 +29,7 @@
 #define TRUE	0xff
 #define FALSE	0x00
 
-#define W5100_SCS	GPIO_Pin_12		/* 定义W5100的CS引脚 */
+#define W5100_SCS		GPIO_Pin_12		/* 定义W5100的CS引脚 */
 
 typedef unsigned char SOCKET;
 extern void Delay(unsigned int d);
@@ -76,6 +76,7 @@ extern unsigned char S3_Data;			/* Socket3 receive data and transmit OK*/
 
 extern unsigned char W5100_Interrupt;
 
+extern void Process_Socket_Data(SOCKET s);
 
 
 /******************************************************************
@@ -88,16 +89,16 @@ extern unsigned char W5100_Interrupt;
 unsigned char SPI_SendByte(unsigned char dt)
 {
 	/* 等待数据寄存器空 */
-	while(SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE) == RESET);
+	while(SPI_I2S_GetFlagStatus(SPI2, SPI_I2S_FLAG_TXE) == RESET);
 
 	/* 通过SPI1接口发送数据 */
-	SPI_I2S_SendData(SPI1, dt);
+	SPI_I2S_SendData(SPI2, dt);
 
 	/* 等待接收到一个字节的数据 */
-	while(SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_RXNE) == RESET);
+	while(SPI_I2S_GetFlagStatus(SPI2, SPI_I2S_FLAG_RXNE) == RESET);
 
 	/* 返回接收的数据 */
-	return SPI_I2S_ReceiveData(SPI1);
+	return SPI_I2S_ReceiveData(SPI2);
 }
 
 /*****************************************************************
@@ -438,7 +439,7 @@ void W5100_Interrupt_Process(void)
 		if(j & S_IR_RECV)				/* Socket接收到数据，可以启动S_rx_process()函数 */
 		{
 			S0_Data |= S_RECEIVE;
-			//..........
+			Process_Socket_Data(0);
 		}
 		if(j & S_IR_TIMEOUT)			/* Socket连接或数据传输超时处理 */
 		{

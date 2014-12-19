@@ -99,7 +99,7 @@ void W5100_Initialization(void)
 	/* 端口0 */
 	Socket_Init(0);
 
-	GPIO_ResetBits(GPIOB, LED_DRIVE); 		/*  开启LED指示灯  */
+	GPIO_ResetBits(GPIOE, LED_DRIVE); 		/*  开启LED指示灯  */
 }
 
 /*****************************************************************
@@ -133,19 +133,6 @@ void W5100_Socket_Set(void)
 返回:
 说明：数据包的结构如下:
 		| 0xaa | 0x55 | Length | Command | Object | Data |
-	Length(1字节): 数据包字节长度，不包括数据包头和本身字节
-	Command(1字节)：为0时读取对象数据，为1时设置对象参数
-	Object(1字节):	0x00: 网关IP
-				   	0x01: 子网掩码
-				   	0x02: 物理地址
-				   	0x03: 本机IP地址
-				   	0x10/0x20/0x30/0x40: 分别为4个端口的端口号
-				   	0x11/0x21/0x31/0x41: 分别为4个端口的目的IP地址(只有在TCP客户端和UDP模式下有效)
-					0x12/0x22/0x32/0x42: 分别为4个端口的目的端口号(只有在TCP客户端和UDP模式下有效)
-					0x12/0x22/0x32/0x42: 分别为4个端口的工作模式
-					0x80: 温度(只读)
-					0x81: 模拟电压信号(只读)
-					0x82: LED的状态
 *****************************************************************/
 void error_process(void)
 {
@@ -262,7 +249,7 @@ int main(void)
 	/* 初始化STM32F101 */
 	System_Initialization();
 
-	/* 检查是否进入默认参数设置状态，然后从24LC01 EEPROM中获取网络参数 */
+	/* 检查是否进入默认参数设置状态*/
 	Load_Net_Parameters();
 
 	/* 初始化W5100 */

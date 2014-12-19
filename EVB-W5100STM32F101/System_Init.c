@@ -8,12 +8,11 @@
 #include <stm32f10x.h>              /* STM32F10x¿â */
 #include"IO_define.h"
 
-//#define ClockSpeed            100000
-
 extern void Delay(unsigned int d);
 
 #define TRUE	0xff
 #define FALSE	0x00
+
 /*******************************************************************************
 * Function Name  : RCC_Configuration
 * Description    : Configures the different system clocks.
@@ -74,11 +73,11 @@ unsigned char RCC_Configuration(void)
 
 	/* Enable peripheral clocks --------------------------------------------------*/
 	/* Enable TIME2 clock */
- 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
+ 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2 | RCC_APB1Periph_SPI2, ENABLE);
 
 	/* Enable GPIOA GPIOB GPIOE SPI1 clocks */
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB
-				| RCC_APB2Periph_GPIOE | RCC_APB2Periph_SPI1 | RCC_APB2Periph_AFIO, ENABLE);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB | RCC_APB2Periph_GPIOC
+				| RCC_APB2Periph_GPIOE | RCC_APB2Periph_AFIO, ENABLE);
 
 	return TRUE;
 }
@@ -117,19 +116,21 @@ void SPI_Configuration(void)
 {
 	GPIO_InitTypeDef 		GPIO_InitStructure;
 	SPI_InitTypeDef   	SPI_InitStructure;
-
+	
 	/* Configure SPI1 pins: SCK, MISO and MOSI -------------*/
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_10MHz;
+	GPIO_InitStructure.GPIO_Pin = NET_SCK | NET_MISO | NET_MOSI;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
 
 	/* Set Chip Select pin */
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12;
+	GPIO_InitStructure.GPIO_Pin = NET_CS;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_10MHz;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
-	GPIO_SetBits(GPIOB, GPIO_Pin_12);
+	
+	/* Chip Select */
+	GPIO_SetBits(GPIOB, NET_CS);
 
 	/* Set SPI interface */
 	SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
@@ -142,9 +143,9 @@ void SPI_Configuration(void)
 	SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;
 	SPI_InitStructure.SPI_CRCPolynomial = 7;
 
-	SPI_Init(SPI1, &SPI_InitStructure);
+	SPI_Init(SPI2, &SPI_InitStructure);
 
-	SPI_Cmd(SPI1, ENABLE);					//Enable  SPI1
+	SPI_Cmd(SPI2, ENABLE);					//Enable  SPI2
 }
 
 /* Timer2 interrupt every 1ms */
@@ -172,25 +173,39 @@ void IO_Configuration(void)
 	GPIO_InitTypeDef  GPIO_InitStructure;
 	EXTI_InitTypeDef	EXTI_InitStructure;
 
-	/* define Digital Input Port */
-	GPIO_InitStructure.GPIO_Pin  = DIG_IN;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-	GPIO_Init(GPIOC, &GPIO_InitStructure);
-
 	/* define Digital Output Port */
 	GPIO_InitStructure.GPIO_Pin  = LED_DRIVE;
 	GPIO_InitStructure.GPIO_Speed=GPIO_Speed_10MHz;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_OD;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
 	GPIO_Init(GPIOE, &GPIO_InitStructure);
 
 	/* Turn off LED */
-	GPIO_SetBits(GPIOE, LED_DRIVE);
+	GPIO_ResetBits(GPIOE, LED_2);
+	GPIO_SetBits(GPIOE, LED_1);
+	GPIO_SetBits(GPIOE, LED_3);
 
 	/* define Digital Output Port */
 	GPIO_InitStructure.GPIO_Pin   = RELAY_ALL;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_10MHz;
-	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_OD;
-	GPIO_Init(GPIOE, &GPIO_InitStructure);
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+	GPIO_Init(GPIOC, &GPIO_InitStructure);
+	
+	/* Turn on Relays */
+	GPIO_SetBits(GPIOC, RELAY_ALL);
+	//GPIO_SetBits(GPIOC, RELAY_2);
+	
+	/* Configure I/O for W5100 RESET */
+  GPIO_InitStructure.GPIO_Pin = NET_RESET;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_10MHz;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+  GPIO_Init(GPIOB, &GPIO_InitStructure);
+	GPIO_SetBits(GPIOB, NET_RESET);
+  
+  /* Configure I/O for W5100 INT */
+  GPIO_InitStructure.GPIO_Pin = NET_INT;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_10MHz;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
+  GPIO_Init(GPIOB, &GPIO_InitStructure);
 	
 	/* Configure PB8 as input floating (EXTI Line8) */
 	GPIO_InitStructure.GPIO_Pin  = GPIO_Pin_8;
@@ -213,16 +228,16 @@ void System_Initialization(void)
 {
  	/* System Clocks Configuration */
   while(RCC_Configuration() == FALSE);
-
+	
+	/* IO Configuration */
+	IO_Configuration();
+	
   /* NVIC configuration */
   NVIC_Configuration();
 
 	/* SPI Configuration */
 	SPI_Configuration();
-
-	/* IO Configuration */
-	IO_Configuration();
-
+	
 	/* Timer configuration */
 	Timer_Configuration();
 }
