@@ -6,7 +6,7 @@
 说明：STM32F10x初始化
 ****************************************************************/
 #include <stm32f10x.h>              /* STM32F10x库 */
-#include"IO_define.h"
+#include "IO_define.h"
 
 extern void Delay(unsigned int d);
 
@@ -77,7 +77,7 @@ unsigned char RCC_Configuration(void)
 
 	/* Enable GPIOA GPIOB GPIOE SPI1 clocks */
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB | RCC_APB2Periph_GPIOC
-				| RCC_APB2Periph_GPIOE | RCC_APB2Periph_AFIO, ENABLE);
+				| RCC_APB2Periph_GPIOE | RCC_APB2Periph_USART1 | RCC_APB2Periph_SPI1 | RCC_APB2Periph_AFIO, ENABLE);
 
 	return TRUE;
 }
@@ -109,6 +109,50 @@ void NVIC_Configuration(void)
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure); 
+	
+	/* Enable the USART1 Interrupt */
+	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
+}
+
+/*    USART Initialization    */
+void USART_Configuration(void)
+{
+	USART_InitTypeDef	USART_InitStructure;
+  GPIO_InitTypeDef 	GPIO_InitStructure;
+
+	/* Configure USART1 Tx (PA9) as alternate function push-pull */
+	GPIO_InitStructure.GPIO_Pin 	= GPIO_Pin_9;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_10MHz;
+	GPIO_InitStructure.GPIO_Mode 	= GPIO_Mode_AF_PP;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+	/* Configure USART1 Rx (PA10) as input floating */
+	GPIO_InitStructure.GPIO_Pin 	= GPIO_Pin_10;
+	GPIO_InitStructure.GPIO_Mode 	= GPIO_Mode_IN_FLOATING;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+	USART_InitStructure.USART_BaudRate						= 9600;
+	USART_InitStructure.USART_WordLength					= USART_WordLength_8b;
+	USART_InitStructure.USART_StopBits						=	USART_StopBits_1;
+	USART_InitStructure.USART_Parity							= USART_Parity_No;
+	USART_InitStructure.USART_HardwareFlowControl	= USART_HardwareFlowControl_None;
+	USART_InitStructure.USART_Mode								= USART_Mode_Tx | USART_Mode_Rx;
+
+	USART_Init(USART1,&USART_InitStructure);
+
+	/* Enable the USART Transmoit interrupt: this interrupt is generated when the
+   USART1 transmit data register is empty */
+//	USART_ITConfig(USART1, USART_IT_TC, ENABLE);
+
+	/* Enable the USART Receive interrupt: this interrupt is generated when the
+   USART1 receive data register is not empty */
+	USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
+
+	USART_Cmd(USART1,ENABLE);				//Enable USART1
 }
 
 /*   SPI Initialization  */
@@ -117,7 +161,36 @@ void SPI_Configuration(void)
 	GPIO_InitTypeDef 		GPIO_InitStructure;
 	SPI_InitTypeDef   	SPI_InitStructure;
 	
-	/* Configure SPI1 pins: SCK, MISO and MOSI -------------*/
+	/* Configure SPI1 pins for flash commucation: */
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5 | GPIO_Pin_6 | GPIO_Pin_7;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_Init(GPIOA, &GPIO_InitStructure);
+	
+	/* Configure I/O for Flash Chip select */
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+  GPIO_Init(GPIOA, &GPIO_InitStructure);
+	/* Chip Select */
+	GPIO_SetBits(GPIOA, GPIO_Pin_4);
+	
+	/* SPI1 configuration */
+  SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
+  SPI_InitStructure.SPI_Mode = SPI_Mode_Master;
+  SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;
+  SPI_InitStructure.SPI_CPOL = SPI_CPOL_High;
+  SPI_InitStructure.SPI_CPHA = SPI_CPHA_2Edge;
+  SPI_InitStructure.SPI_NSS = SPI_NSS_Soft;
+  SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_4;
+  SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;
+  SPI_InitStructure.SPI_CRCPolynomial = 7;
+	
+  SPI_Init(SPI1, &SPI_InitStructure);
+
+  SPI_Cmd(SPI1, ENABLE);
+	
+	
+	/* Configure SPI2 pins for SW5100 commucation: */
 	GPIO_InitStructure.GPIO_Pin = NET_SCK | NET_MISO | NET_MOSI;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
@@ -237,6 +310,9 @@ void System_Initialization(void)
 
 	/* SPI Configuration */
 	SPI_Configuration();
+	
+	/* UART Configuration */
+	USART_Configuration();
 	
 	/* Timer configuration */
 	Timer_Configuration();

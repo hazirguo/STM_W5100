@@ -1,3 +1,7 @@
+#ifndef __IO_DEFINE_H_
+#define __IO_DEFINE_H_
+#include <stm32f10x.h>
+
 /* define Net SPI Port */
 #define NET_CS 		GPIO_Pin_12
 #define NET_SCK 	GPIO_Pin_13
@@ -26,3 +30,14 @@
 #define RELAY_2			GPIO_Pin_5
 #define RELAY_ALL		RELAY_1|RELAY_2
 
+
+#define RELAY_OFF(channel)	GPIO_ResetBits(GPIOC, RELAY_PINS[channel])
+#define RELAY_ON(channel)		GPIO_SetBits(GPIOC, RELAY_PINS[channel])
+#define RELAY_ALL_OFF()			GPIO_ResetBits(GPIOC, RELAY_ALL)
+#define RELAY_ALL_ON()			GPIO_SetBits(GPIOC, RELAY_ALL)
+
+#define RELAY_SENSE(channel)	GPIO_ReadOutputDataBit(GPIOC, RELAY_PINS[channel])
+#define RELAY_ALL_ON_SENSE() 		(GPIO_ReadOutputData(GPIOC) & RELAY_ALL)
+#define RELAY_ALL_OFF_SENSE()		(GPIO_ReadOutputData(GPIOC) | RELAY_ALL)
+
+#endif

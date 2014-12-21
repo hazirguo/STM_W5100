@@ -13,12 +13,26 @@
 
 extern unsigned int Timer2_Counter;
 
-extern unsigned short Pot, pot[8];
+extern unsigned char W5100_Interrupt;
 
+extern unsigned char USART_Rx_Buffer[128];
+extern unsigned char USART_Tx_Buffer[128];
 extern unsigned short RxCounter;
 extern unsigned short TxCounter, TxIndex;
+extern unsigned char USART_DataReceive;
 
-extern unsigned char W5100_Interrupt;
+enum COMMAND {
+	LOCAL_IP,
+	GATEWAY_IP,
+	SUBNET_MASK,
+	LISTEN_PORT,
+	PHYSICAL_ADDR,
+	COMMAND_NUM
+};
+extern enum COMMAND	 RxCommand;
+extern unsigned short RxDataSizeArr[COMMAND_NUM];
+extern unsigned short RxDataSize;
+extern void Delay(unsigned int);
 
 /*******************************************************************************
 * Function Name  : NMIException
@@ -546,6 +560,37 @@ void SPI2_IRQHandler(void)
 *******************************************************************************/
 void USART1_IRQHandler(void)
 {
+	if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
+	{
+		/* 清除USART1接收中断标志 */
+		USART_ClearITPendingBit(USART1, USART_IT_RXNE);
+
+		if(USART_DataReceive == 0) 
+		{
+			/* 从UART1接收寄存器读取一个字节的数据 */
+			USART_Rx_Buffer[RxCounter++] = USART_ReceiveData(USART1);
+
+			/* 检查是否是数据包的头 */
+			if(RxCounter == 2)
+			{
+				if((USART_Rx_Buffer[0]!=0xaa) || ( USART_Rx_Buffer[1]!=0x55))
+				{
+					USART_Rx_Buffer[0] = USART_Rx_Buffer[1];
+					RxCounter--;
+				}
+			}
+			else if (RxCounter == 3)
+			{
+				RxCommand = (enum COMMAND)USART_Rx_Buffer[2];
+				RxDataSize = RxDataSizeArr[RxCommand];
+			}
+			/* 检查是否接收完整的数据包 */
+			else if(RxCounter >= RxDataSize)
+			{
+				USART_DataReceive=1;
+			}
+		}
+	}
 }
 
 /*******************************************************************************

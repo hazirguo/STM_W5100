@@ -10,6 +10,16 @@
 #include "Net_Parameter.h"				/* 网络通信参数定义 */
 #include "IO_define.h"					/* 评估板硬件接口定义 */
 #include "W5100.h"						/* W5100定义 */
+#include "m25p64.h"				/*flash*/
+
+void delay()
+{
+	unsigned int j;
+	for (j=0; j<0xffee; )
+	{
+		j++;
+	}
+}
 
 /**********************************************************************
 程序名: Delay
@@ -48,36 +58,52 @@ void Delay(unsigned int d)
 **********************************************************************/
 void Load_Net_Parameters(void)
 {
-	/* 加载网关参数 */
-	Gateway_IP[0] = GATEWAY_IP_1;
-	Gateway_IP[1] = GATEWAY_IP_2;
-	Gateway_IP[2] = GATEWAY_IP_3;
-	Gateway_IP[3] = GATEWAY_IP_4;
+	//if flash is enabled
+	if (SPI_FLASH_ReadID() == FLASH_ID)
+	{
+		delay();
+		SPI_FLASH_BufferRead(Gateway_IP, FLASH_GATEWAY_IP_ADDR, FLASH_GATEWAY_IP_SIZE);
+		delay();
+		SPI_FLASH_BufferRead(Sub_Mask, FLASH_SUBNET_MASK_ADDR, FLASH_SUBNET_MASK_SIZE);
+		delay();
+		SPI_FLASH_BufferRead(Phy_Addr, FLASH_PHY_ADDR_ADDR, FLASH_PHY_ADDR_SIZE);
+		delay();
+		SPI_FLASH_BufferRead(Local_IP, FLASH_LOCAL_IP_ADDR, FLASH_LOCAL_IP_SIZE);
+		delay();
+		SPI_FLASH_BufferRead(S0_Port, FLASH_S0_PORT_ADDR, FLASH_S0_PORT_SIZE);
+	}
+	else
+	{
+		/* 加载网关参数 */
+		Gateway_IP[0] = GATEWAY_IP_ADDR_1;
+		Gateway_IP[1] = GATEWAY_IP_ADDR_2;
+		Gateway_IP[2] = GATEWAY_IP_ADDR_3;
+		Gateway_IP[3] = GATEWAY_IP_ADDR_4;
 
-	/* 加载子网掩码 */
-	Sub_Mask[0] = SUBNET_MASK_1;
-	Sub_Mask[1] = SUBNET_MASK_2;
-	Sub_Mask[2] = SUBNET_MASK_3;
-	Sub_Mask[3] = SUBNET_MASK_4;
+		/* 加载子网掩码 */
+		Sub_Mask[0] = SUBNET_MASK_1;
+		Sub_Mask[1] = SUBNET_MASK_2;
+		Sub_Mask[2] = SUBNET_MASK_3;
+		Sub_Mask[3] = SUBNET_MASK_4;
 
-	/* 加载物理地址 */
-	Phy_Addr[0] = PHY_ADDR_1;
-	Phy_Addr[1] = PHY_ADDR_2;
-	Phy_Addr[2] = PHY_ADDR_3;
-	Phy_Addr[3] = PHY_ADDR_4;
-	Phy_Addr[4] = PHY_ADDR_5;
-	Phy_Addr[5] = PHY_ADDR_6;
+		/* 加载物理地址 */
+		Phy_Addr[0] = PHY_ADDR_1;
+		Phy_Addr[1] = PHY_ADDR_2;
+		Phy_Addr[2] = PHY_ADDR_3;
+		Phy_Addr[3] = PHY_ADDR_4;
+		Phy_Addr[4] = PHY_ADDR_5;
+		Phy_Addr[5] = PHY_ADDR_6;
 
-	/* 加载IP地址 */
-	IP_Addr[0] = IP_ADDR_1;
-	IP_Addr[1] = IP_ADDR_2;
-	IP_Addr[2] = IP_ADDR_3;
-	IP_Addr[3] = IP_ADDR_4;
+		/* 加载IP地址 */
+		Local_IP[0] = LOCAL_IP_ADDR_1;
+		Local_IP[1] = LOCAL_IP_ADDR_2;
+		Local_IP[2] = LOCAL_IP_ADDR_3;
+		Local_IP[3] = LOCAL_IP_ADDR_4;
 
-	/* 加载端口0的端口号5000 */
-	S0_Port[0] = S0_PORT_1;  
-	S0_Port[1] = S0_PORT_2; 
-
+		/* 加载端口0的端口号5000 */
+		S0_Port[0] = S0_PORT_1;  
+		S0_Port[1] = S0_PORT_2; 
+	}
 	/* 加载端口0的工作模式 */
 	S0_Mode = S0_MODE; 
 }
@@ -88,7 +114,7 @@ void Load_Net_Parameters(void)
 输出: 无
 返回: 无
 说明：先对W5100初始化，然后检查网关，最后分别初始化4个端口
-*****************************************************************/
+*****************************************************************/ 
 void W5100_Initialization(void)
 {
 	W5100_Init();
@@ -126,93 +152,6 @@ void W5100_Socket_Set(void)
 	}
 }
 
-/*****************************************************************
-程序名: Rx_Data_process
-输入: 数据字节长度
-输出: 返回的数据，存储在Temp_Buffer中
-返回:
-说明：数据包的结构如下:
-		| 0xaa | 0x55 | Length | Command | Object | Data |
-*****************************************************************/
-void error_process(void)
-{
-	Temp_Buffer[2] =2;
-	Temp_Buffer[3] |= 0x80;
-}
-
-void set_data_ok(unsigned char i)
-{
-	Temp_Buffer[2]=3;
-	Temp_Buffer[5]=i;
-}
-
-void Rx_Data_Process(short l)
-{
-	unsigned char i;
-
-	if((Temp_Buffer[0]!=0xaa)||(Temp_Buffer[1]!=0x55))	/* 数据包头错误 */
-		return;
-
-	i=l-3;
-	if(i!=Temp_Buffer[2])				/* 数据包字节长度错误 */
-		return;
-
-	i=Temp_Buffer[4];					/* 指向对象 */
-
-	if(Temp_Buffer[3])
-	{									/* 设置对象参数 */
-		switch(i)
-		{
-			case 0x82:
-				if(Temp_Buffer[2]!=3)
-					error_process();
-				else
-				{
-					if(Temp_Buffer[5]==1)
-					{
-						GPIO_SetBits(GPIOB, LED_DRIVE); 		/* 开启LED指示灯 */
-
-						set_data_ok(1);
-					}
-					else if(Temp_Buffer[5]==0)
-					{
-						GPIO_ResetBits(GPIOB, LED_DRIVE); 		/* 关闭LED指示灯 */
-						set_data_ok(1);
-					}
-					else
-						error_process();
-				}
-				break;
-
-			default:
-				error_process();
-				break;
-		}
-	}
-	else				/* 读取对象参数 */
-	{
-		if(Temp_Buffer[2]!=2)
-			error_process();
-		else
-		{
-			Temp_Buffer[2]=6;
-			switch(i)
-			{
-				case 0x82:			/* 读取LED的状态 */
-					if(GPIO_ReadOutputDataBit(GPIOB, LED_DRIVE))
-						Temp_Buffer[5]=1;
-					else
-						Temp_Buffer[5]=0;
-
-					Temp_Buffer[2]-=3;
-					break;
-				default:
-					error_process();
-					break;
-			}
-		}
-	}
-}
 
 /*********************************************************************
 程序名: Process_Socket_Data
@@ -228,30 +167,204 @@ void Rx_Data_Process(short l)
 void Process_Socket_Data(SOCKET s)
 {
 	unsigned short size;
-
+	unsigned char cmd;
+	unsigned char ret_code = 0;
+	
 	size = S_rx_process(s);
-	memcpy(Tx_Buffer, Rx_Buffer, size);
-
-//	Rx_Data_Process(size);
-
-//	size = Temp_Buffer[2]+3;
-//	memcpy(Tx_Buffer, Temp_Buffer, size);
-
-	S_tx_process(s, size);
+	
+	//FE + cmd
+	if (size == 2)
+	{	
+		cmd = Rx_Buffer[1];
+		if (IS_NCD_OFF_CMD(cmd))
+		{
+			channel = cmd - NCD_OFF_BASE;
+			NetCommand = NCD_OFF_CMD;
+			RELAY_OFF(channel);
+			ret_code = 1;		
+		}
+		else if (IS_NCD_ON_CMD(cmd))
+		{
+			channel = cmd - NCD_ON_BASE;
+			NetCommand = NCD_ON_CMD;
+			RELAY_ON(channel);
+			ret_code = 1;
+		}
+		else if (IS_NCD_RELAY_SENSE_BASE(cmd))
+		{
+			channel = cmd - NCD_RELAY_SENSE_BASE;
+			switch(NetCommand)
+			{
+				case NCD_OFF_CMD:
+				case NCD_ON_CMD:
+					ret_code = RELAY_SENSE(channel);
+					break;
+				case NCD_ALL_OFF_CMD:
+					ret_code = RELAY_ALL_OFF_SENSE();
+					break;
+				case NCD_ALL_ON_CMD:
+					ret_code = RELAY_ALL_ON_SENSE();
+					break;
+				default:
+					ret_code = RELAY_SENSE(channel);
+					break;
+			}
+			NetCommand = NCD_SENSE_CMD;
+		}
+		else if (IS_NCD_ALL_OFF(cmd))
+		{
+			NetCommand = NCD_ALL_OFF_CMD;	
+			RELAY_ALL_OFF();
+			ret_code = 1;	
+		}
+		else if (IS_NCD_ALL_ON(cmd))
+		{
+			NetCommand = NCD_ALL_ON_CMD;	
+			RELAY_ALL_ON();
+			ret_code = 1;
+		}
+		else
+		{
+			ret_code = 0;
+		}
+	}
+	
+	Tx_Buffer[0] = ret_code;
+	S_tx_process(s, 1);
 }
 
 
+/*********************************************************************
+程序名: Process_UART_Data
+输入: 无
+输出: 无
+返回:
+说明：本过程先将UART的数据从UART_Rx_Buffer拷贝到Temp_Buffer缓冲区进行处理。
+
+	处理完毕，将数据从Temp_Buffer拷贝到UART_Tx_Buffer缓冲区等待发送数据。
+*********************************************************************/
+void Process_UART_Data(void)
+{
+	unsigned char i;
+	
+	if (SPI_FLASH_ReadID() != FLASH_ID)
+	{
+		USART_SendData(USART1, 0xEE);
+		return;
+	}
+
+	switch(RxCommand)
+	{
+		case GATEWAY_IP:
+			if (Gateway_IP[0] >= 0 && Gateway_IP[0] <=255 &&
+				Gateway_IP[1] >= 0 && Gateway_IP[1] <=255 &&
+				Gateway_IP[2] >= 0 && Gateway_IP[2] <=255 &&
+				Gateway_IP[3] >= 0 && Gateway_IP[3] <=255)
+			{
+				memcpy(Gateway_IP, USART_Rx_Buffer+3, FLASH_GATEWAY_IP_SIZE);
+				SPI_FLASH_SectorErase(FLASH_GATEWAY_IP_ADDR);
+				SPI_FLASH_BufferWrite(Gateway_IP, FLASH_GATEWAY_IP_ADDR, FLASH_GATEWAY_IP_SIZE);
+				delay();
+		//		SPI_FLASH_BufferRead(Temp_Buffer, FLASH_GATEWAY_IP_ADDR, FLASH_GATEWAY_IP_SIZE);
+				break;
+			}
+			else
+			{
+				USART_SendData(USART1, 0xDD);
+				return;
+			}
+		case SUBNET_MASK:
+			if (Sub_Mask[0] >= 0 && Sub_Mask[0] <=255 &&
+				Sub_Mask[1] >= 0 && Sub_Mask[1] <=255 &&
+				Sub_Mask[2] >= 0 && Sub_Mask[2] <=255 &&
+				Sub_Mask[3] >= 0 && Sub_Mask[3] <=255)
+			{
+				memcpy(Sub_Mask, USART_Rx_Buffer+3, FLASH_SUBNET_MASK_SIZE);
+				SPI_FLASH_SectorErase(FLASH_SUBNET_MASK_ADDR);
+				SPI_FLASH_BufferWrite(Sub_Mask, FLASH_SUBNET_MASK_ADDR, FLASH_SUBNET_MASK_SIZE);
+				delay();
+			//	SPI_FLASH_BufferRead(Temp_Buffer, FLASH_SUBNET_MASK_ADDR, FLASH_SUBNET_MASK_SIZE);
+				break;
+			} 
+			else
+			{
+				USART_SendData(USART1, 0xDD);
+				return;
+			}
+		case PHYSICAL_ADDR:
+			memcpy(Phy_Addr, USART_Rx_Buffer+3, FLASH_PHY_ADDR_SIZE);
+			SPI_FLASH_SectorErase(FLASH_PHY_ADDR_ADDR);
+			SPI_FLASH_BufferWrite(Phy_Addr, FLASH_PHY_ADDR_ADDR, FLASH_PHY_ADDR_SIZE);
+			delay();
+		//	SPI_FLASH_BufferRead(Temp_Buffer, FLASH_PHY_ADDR_ADDR, FLASH_PHY_ADDR_SIZE);
+			break;
+		case LOCAL_IP:
+			if (Local_IP[0] >= 0 && Local_IP[0] <=255 &&
+				Local_IP[1] >= 0 && Local_IP[1] <=255 &&
+				Local_IP[2] >= 0 && Local_IP[2] <=255 &&
+				Local_IP[3] >= 0 && Local_IP[3] <=255)
+			{
+				memcpy(Local_IP, USART_Rx_Buffer+3, FLASH_LOCAL_IP_SIZE);
+				SPI_FLASH_SectorErase(FLASH_LOCAL_IP_SIZE);
+				SPI_FLASH_BufferWrite(Local_IP, FLASH_LOCAL_IP_ADDR, FLASH_LOCAL_IP_SIZE);
+				delay();		
+			//	SPI_FLASH_BufferRead(Temp_Buffer, FLASH_LOCAL_IP_ADDR, FLASH_LOCAL_IP_SIZE);
+				break;
+			}
+			else
+			{
+				USART_SendData(USART1, 0xDD);
+				return;
+			}
+		case LISTEN_PORT:
+			memcpy(S0_Port, USART_Rx_Buffer+3, FLASH_S0_PORT_SIZE);
+			SPI_FLASH_SectorErase(FLASH_S0_PORT_ADDR);	
+			SPI_FLASH_BufferWrite(S0_Port, FLASH_S0_PORT_ADDR, FLASH_S0_PORT_SIZE);
+		//	SPI_FLASH_BufferRead(S0_Port, FLASH_S0_PORT_ADDR, FLASH_S0_PORT_SIZE);
+			delay();
+			break;
+		default:
+			USART_SendData(USART1, 0xFF);
+			return;
+	}
+	for(i=0; i<RxCounter; i++)
+	{
+		USART_SendData(USART1, USART_Rx_Buffer[i]);
+		delay();
+	}
+
+	RxCounter = 0;
+	USART_DataReceive = 0;
+}
+
 /*****************************************************************
-                           主程序
-*****************************************************************/
+                            主程序
+*****************************************************************/	
+u8 val;
 int main(void)
 {
-	/* 初始化STM32F101 */
-	System_Initialization();
 
+	
+	/* 初始化STM32F103 */
+	System_Initialization();
+	
+	
+	GPIO_ResetBits(GPIOE, LED_2);
+	GPIO_SetBits(GPIOE, LED_1);
+	GPIO_SetBits(GPIOE, LED_3);
+	
+	val = GPIO_ReadOutputDataBit(GPIOE, LED_1);
+	
+	val = GPIO_ReadOutputDataBit(GPIOE, LED_2);
+	
+	val = GPIO_ReadOutputDataBit(GPIOE, LED_1 | LED_2);
+	
+	val = GPIO_ReadOutputData(GPIOE);
+	
+	
 	/* 检查是否进入默认参数设置状态*/
 	Load_Net_Parameters();
-
+	
 	/* 初始化W5100 */
 	W5100_Initialization();
 
@@ -270,5 +383,13 @@ int main(void)
 			S0_Data &= ~S_RECEIVE;
 			Process_Socket_Data(0);
 		}
+		
+		/* 如果接收到 USART1 的数据 */
+		if(USART_DataReceive == 1)
+		{
+			USART_DataReceive = 0;
+			Process_UART_Data();
+		}
+
 	}while(1);
 }

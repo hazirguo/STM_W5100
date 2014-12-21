@@ -42,7 +42,7 @@ extern unsigned char Tx_Buffer[2000];			/* 端口发送数据缓冲区 */
 extern unsigned char Gateway_IP[4];	     		/* Gateway IP Address */
 extern unsigned char Sub_Mask[4];				/* Subnet Mask */
 extern unsigned char Phy_Addr[6];  			/* Physical Address */
-extern unsigned char IP_Addr[4];				/* Loacal IP Address */
+extern unsigned char Local_IP[4];				/* Loacal IP Address */
 
 extern unsigned char S0_Port[2];   			/* Socket0 Port number */
 extern unsigned char S0_DIP[4];					/* Socket0 Destination IP Address */
@@ -187,7 +187,7 @@ void W5100_Init(void)
 	/*设置本机的IP地址，4个字节
 	注意，网关IP必须与本机IP属于同一个子网，否则本机将无法找到网关*/
 	for(i=0; i<4; i++)
-		Write_W5100(W5100_SIPR+i, IP_Addr[i]);			/*IP_ADDR为4字节unsigned char数组,自己定义*/
+		Write_W5100(W5100_SIPR+i, Local_IP[i]);			/*IP_ADDR为4字节unsigned char数组,自己定义*/
 
 	/*设置发送缓冲区和接收缓冲区的大小，参考W5100数据手册*/
 	Write_W5100(W5100_RMSR, 0x55);		/*Socket Rx memory size=2k*/
@@ -230,7 +230,7 @@ unsigned char Detect_Gateway(void)
 
 	/*检查网关及获取网关的物理地址*/
 	for(i=0; i<4; i++)
-		Write_W5100((W5100_S0_DIPR+i), IP_Addr[i]+1);	/*向目的地址寄存器写入与本机IP不同的IP值*/
+		Write_W5100((W5100_S0_DIPR+i), Local_IP[i]+1);	/*向目的地址寄存器写入与本机IP不同的IP值*/
 
 	Write_W5100((W5100_S0_CR), S_CR_CONNECT);		/*打开socket0的TCP连接*/
 
@@ -439,7 +439,7 @@ void W5100_Interrupt_Process(void)
 		if(j & S_IR_RECV)				/* Socket接收到数据，可以启动S_rx_process()函数 */
 		{
 			S0_Data |= S_RECEIVE;
-			Process_Socket_Data(0);
+		//	Process_Socket_Data(0);
 		}
 		if(j & S_IR_TIMEOUT)			/* Socket连接或数据传输超时处理 */
 		{
