@@ -188,7 +188,7 @@ void SPI_Configuration(void)
   SPI_Init(SPI1, &SPI_InitStructure);
 
   SPI_Cmd(SPI1, ENABLE);
-	
+	 
 	
 	/* Configure SPI2 pins for SW5100 commucation: */
 	GPIO_InitStructure.GPIO_Pin = NET_SCK | NET_MISO | NET_MOSI;

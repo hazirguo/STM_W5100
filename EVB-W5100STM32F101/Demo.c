@@ -125,7 +125,7 @@ void W5100_Initialization(void)
 	/* 端口0 */
 	Socket_Init(0);
 
-	GPIO_ResetBits(GPIOE, LED_DRIVE); 		/*  开启LED指示灯  */
+	//GPIO_ResetBits(GPIOE, LED_DRIVE); 		/*  开启LED指示灯  */
 }
 
 /*****************************************************************
@@ -181,14 +181,14 @@ void Process_Socket_Data(SOCKET s)
 			channel = cmd - NCD_OFF_BASE;
 			NetCommand = NCD_OFF_CMD;
 			RELAY_OFF(channel);
-			ret_code = 1;		
+			ret_code = 0x55;		
 		}
 		else if (IS_NCD_ON_CMD(cmd))
 		{
 			channel = cmd - NCD_ON_BASE;
 			NetCommand = NCD_ON_CMD;
 			RELAY_ON(channel);
-			ret_code = 1;
+			ret_code = 0x55;
 		}
 		else if (IS_NCD_RELAY_SENSE_BASE(cmd))
 		{
@@ -215,13 +215,13 @@ void Process_Socket_Data(SOCKET s)
 		{
 			NetCommand = NCD_ALL_OFF_CMD;	
 			RELAY_ALL_OFF();
-			ret_code = 1;	
+			ret_code = 0x55;	
 		}
 		else if (IS_NCD_ALL_ON(cmd))
 		{
 			NetCommand = NCD_ALL_ON_CMD;	
 			RELAY_ALL_ON();
-			ret_code = 1;
+			ret_code = 0x55;
 		}
 		else
 		{
@@ -327,6 +327,8 @@ void Process_UART_Data(void)
 			USART_SendData(USART1, 0xFF);
 			return;
 	}
+	
+	//echo to user
 	for(i=0; i<RxCounter; i++)
 	{
 		USART_SendData(USART1, USART_Rx_Buffer[i]);
@@ -348,7 +350,7 @@ int main(void)
 	/* 初始化STM32F103 */
 	System_Initialization();
 	
-	
+	/*
 	GPIO_ResetBits(GPIOE, LED_2);
 	GPIO_SetBits(GPIOE, LED_1);
 	GPIO_SetBits(GPIOE, LED_3);
@@ -360,7 +362,7 @@ int main(void)
 	val = GPIO_ReadOutputDataBit(GPIOE, LED_1 | LED_2);
 	
 	val = GPIO_ReadOutputData(GPIOE);
-	
+	*/
 	
 	/* 检查是否进入默认参数设置状态*/
 	Load_Net_Parameters();
@@ -371,7 +373,7 @@ int main(void)
 	do
 	{
 		/* 设置W5100端口 */
-		W5100_Socket_Set();
+			W5100_Socket_Set();
 
 		/* 处理W5100中断 */
 		if(W5100_Interrupt)
