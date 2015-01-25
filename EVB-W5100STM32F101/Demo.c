@@ -70,7 +70,7 @@ void Load_Net_Parameters(void)
 		delay();
 		SPI_FLASH_BufferRead(Local_IP, FLASH_LOCAL_IP_ADDR, FLASH_LOCAL_IP_SIZE);
 		delay();
-		SPI_FLASH_BufferRead(S0_Port, FLASH_S0_PORT_ADDR, FLASH_S0_PORT_SIZE);
+		SPI_FLASH_BufferRead(S0_Port, FLASH_LOCAL_PORT_ADDR, FLASH_LOCAL_PORT_SIZE);
 	}
 	else
 	{
@@ -122,8 +122,11 @@ void W5100_Initialization(void)
 	/* 检查网关服务器 */
 	Detect_Gateway();
 
-	/* 端口0 */
+	/* 端口0 -- 作为服务器*/
 	Socket_Init(0);
+	
+	/* 端口1 -- 作为客户端*/
+	Socket_Init(1);
 
 	//GPIO_ResetBits(GPIOE, LED_DRIVE); 		/*  开启LED指示灯  */
 }
@@ -140,16 +143,36 @@ void W5100_Initialization(void)
 void W5100_Socket_Set(void)
 {
 	/* 端口 0 */
-	if(S0_State==0)
+	if(S0_State == 0)
 	{
-		if(S0_Mode==TCP_SERVER)			/* TCP服务器模式 */
+		if(S0_Mode == TCP_SERVER)			/* TCP服务器模式 */
 		{
-			if(Socket_Listen(0)==TRUE)
-				S0_State=S_INIT;
+			if(Socket_Listen(0) == TRUE)
+				S0_State = S_INIT;
 			else
-				S0_State=0;
+				S0_State = 0;
 		}
 	}
+	
+	/* 端口 1 */
+	if(S1_State == 0)
+	{
+		if(S1_Mode == TCP_SERVER)			/* TCP服务器模式 */
+		{
+			if(Socket_Listen(1) == TRUE)
+				S1_State = S_INIT;
+			else
+				S1_State = 0;
+		}
+		else if(S1_Mode == TCP_CLIENT)	/* TCP客户端模式 */
+		{
+			if(Socket_Connect(1) == TRUE)
+				S1_State = S_INIT;
+			else
+				S1_State=0;
+		}
+	}
+
 }
 
 
@@ -256,41 +279,20 @@ void Process_UART_Data(void)
 	switch(RxCommand)
 	{
 		case GATEWAY_IP:
-			if (Gateway_IP[0] >= 0 && Gateway_IP[0] <=255 &&
-				Gateway_IP[1] >= 0 && Gateway_IP[1] <=255 &&
-				Gateway_IP[2] >= 0 && Gateway_IP[2] <=255 &&
-				Gateway_IP[3] >= 0 && Gateway_IP[3] <=255)
-			{
 				memcpy(Gateway_IP, USART_Rx_Buffer+3, FLASH_GATEWAY_IP_SIZE);
 				SPI_FLASH_SectorErase(FLASH_GATEWAY_IP_ADDR);
 				SPI_FLASH_BufferWrite(Gateway_IP, FLASH_GATEWAY_IP_ADDR, FLASH_GATEWAY_IP_SIZE);
 				delay();
 		//		SPI_FLASH_BufferRead(Temp_Buffer, FLASH_GATEWAY_IP_ADDR, FLASH_GATEWAY_IP_SIZE);
 				break;
-			}
-			else
-			{
-				USART_SendData(USART1, 0xDD);
-				return;
-			}
 		case SUBNET_MASK:
-			if (Sub_Mask[0] >= 0 && Sub_Mask[0] <=255 &&
-				Sub_Mask[1] >= 0 && Sub_Mask[1] <=255 &&
-				Sub_Mask[2] >= 0 && Sub_Mask[2] <=255 &&
-				Sub_Mask[3] >= 0 && Sub_Mask[3] <=255)
-			{
 				memcpy(Sub_Mask, USART_Rx_Buffer+3, FLASH_SUBNET_MASK_SIZE);
 				SPI_FLASH_SectorErase(FLASH_SUBNET_MASK_ADDR);
 				SPI_FLASH_BufferWrite(Sub_Mask, FLASH_SUBNET_MASK_ADDR, FLASH_SUBNET_MASK_SIZE);
 				delay();
 			//	SPI_FLASH_BufferRead(Temp_Buffer, FLASH_SUBNET_MASK_ADDR, FLASH_SUBNET_MASK_SIZE);
 				break;
-			} 
-			else
-			{
-				USART_SendData(USART1, 0xDD);
-				return;
-			}
+	
 		case PHYSICAL_ADDR:
 			memcpy(Phy_Addr, USART_Rx_Buffer+3, FLASH_PHY_ADDR_SIZE);
 			SPI_FLASH_SectorErase(FLASH_PHY_ADDR_ADDR);
@@ -299,28 +301,29 @@ void Process_UART_Data(void)
 		//	SPI_FLASH_BufferRead(Temp_Buffer, FLASH_PHY_ADDR_ADDR, FLASH_PHY_ADDR_SIZE);
 			break;
 		case LOCAL_IP:
-			if (Local_IP[0] >= 0 && Local_IP[0] <=255 &&
-				Local_IP[1] >= 0 && Local_IP[1] <=255 &&
-				Local_IP[2] >= 0 && Local_IP[2] <=255 &&
-				Local_IP[3] >= 0 && Local_IP[3] <=255)
-			{
 				memcpy(Local_IP, USART_Rx_Buffer+3, FLASH_LOCAL_IP_SIZE);
 				SPI_FLASH_SectorErase(FLASH_LOCAL_IP_SIZE);
 				SPI_FLASH_BufferWrite(Local_IP, FLASH_LOCAL_IP_ADDR, FLASH_LOCAL_IP_SIZE);
 				delay();		
 			//	SPI_FLASH_BufferRead(Temp_Buffer, FLASH_LOCAL_IP_ADDR, FLASH_LOCAL_IP_SIZE);
 				break;
-			}
-			else
-			{
-				USART_SendData(USART1, 0xDD);
-				return;
-			}
 		case LISTEN_PORT:
-			memcpy(S0_Port, USART_Rx_Buffer+3, FLASH_S0_PORT_SIZE);
-			SPI_FLASH_SectorErase(FLASH_S0_PORT_ADDR);	
-			SPI_FLASH_BufferWrite(S0_Port, FLASH_S0_PORT_ADDR, FLASH_S0_PORT_SIZE);
+			memcpy(S0_Port, USART_Rx_Buffer+3, FLASH_LOCAL_PORT_SIZE);
+			SPI_FLASH_SectorErase(FLASH_LOCAL_PORT_ADDR);	
+			SPI_FLASH_BufferWrite(S0_Port, FLASH_LOCAL_PORT_ADDR, FLASH_LOCAL_PORT_SIZE);
 		//	SPI_FLASH_BufferRead(S0_Port, FLASH_S0_PORT_ADDR, FLASH_S0_PORT_SIZE);
+			delay();
+			break;
+		case REMOTE_IP:
+			memcpy(Remote_IP, USART_Rx_Buffer+3, FLASH_REMOTE_IP_SIZE);
+			SPI_FLASH_SectorErase(FLASH_LOCAL_IP_SIZE);
+			SPI_FLASH_BufferWrite(Remote_IP, FLASH_REMOTE_IP_ADDR, FLASH_REMOTE_IP_SIZE);
+			delay();		
+			break;
+		case REMOTE_PORT:
+			memcpy(S1_Port, USART_Rx_Buffer+3, FLASH_REMOTE_PORT_ADDR);
+			SPI_FLASH_SectorErase(FLASH_REMOTE_PORT_ADDR);	
+			SPI_FLASH_BufferWrite(S1_Port, FLASH_REMOTE_PORT_ADDR, FLASH_REMOTE_PORT_SIZE);
 			delay();
 			break;
 		default:

@@ -39,9 +39,15 @@
 #define LOCAL_IP_ADDR_3	0
 #define LOCAL_IP_ADDR_4	223
 
-#define FLASH_S0_PORT_ADDR 0x40000
+#define FLASH_LOCAL_PORT_ADDR 		0x40000
 //#define FLASH_S0_PORT_ADDR		(FLASH_LOCAL_IP_ADDR + FLASH_LOCAL_IP_SIZE)
-#define FLASH_S0_PORT_SIZE		2
+#define FLASH_LOCAL_PORT_SIZE		2
+
+#define FLASH_REMOTE_IP_ADDR 		0x50000
+#define FLASH_REMOTE_IP_SIZE		4
+
+#define FLASH_REMOTE_PORT_ADDR	0x60000
+#define FLASH_REMOTE_PORT_SIZE	2
 
 /* Socket0 parameters */
 #define S0_PORT_1	0x13		/* Socket0 Port Number */
@@ -49,3 +55,4 @@
 
 
 #define S0_MODE		TCP_SERVER		/* Socket0 operation mode */
+#define S1_MODE		TCP_CLIENT		/* Socket1 operation mode */

@@ -26,10 +26,27 @@ enum COMMAND {
 	PHYSICAL_ADDR,
 	LOCAL_IP,
 	LISTEN_PORT,
+	REMOTE_IP,
+	REMOTE_PORT,
 	COMMAND_NUM
 };
 enum COMMAND	 RxCommand;
-unsigned short RxDataSizeArr[COMMAND_NUM] = {7, 7, 9, 7, 5};
+
+/*
+命令表：
+
+命令头    | 命令  | 数据
+==========|=======|====================
+					|	0x00	|	D1 D2 D3 D4	
+					|	0x01	|	D1 D2 D3 D4	
+					|	0x02	|	D1 D2 D3 D4 D5 D6	
+0Xaa 0x55	|	0x03	|	D1 D2 D3 D4
+					|	0x04	|	D1 D2 	
+					|	0x05	|	D1 D2 D3 D4	
+					|	0x06	|	D1 D2	
+*/
+
+unsigned short RxDataSizeArr[COMMAND_NUM] = {7, 7, 9, 7, 5, 7, 5};
 unsigned short RxDataSize = 128;
 
 
@@ -42,6 +59,8 @@ unsigned char Gateway_IP[4];			/* 网关IP地址 */
 unsigned char Sub_Mask[4];				/* 子网掩码 */
 unsigned char Phy_Addr[6];  			/* 物理地址 */
 unsigned char Local_IP[4];				/* 本机IP地址 */
+unsigned char Remote_IP[4];				/* 远程IP地址 */
+
 
 unsigned char S0_Port[2];   			/* 端口0的端口号 */
 unsigned char S0_DIP[4];				/* 端口0目的IP地址 */

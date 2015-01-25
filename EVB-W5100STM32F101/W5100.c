@@ -258,6 +258,8 @@ unsigned char Detect_Gateway(void)
 -----------------------------------------------------------------------------*/
 void Socket_Init(SOCKET s)
 {
+	unsigned int i;
+	
 	/*设置分片长度，参考W5100数据手册，该值可以不修改*/
 	Write_W5100((W5100_S0_MSS+s*0x100), 0x05);		/*最大分片字节数=1460*/
 	Write_W5100((W5100_S0_MSS+s*0x100+1), 0xb4);
@@ -265,14 +267,54 @@ void Socket_Init(SOCKET s)
 	/* Set Socket Port number */
 	switch(s)
 	{
+		//Socket 0 作为服务端，需要初始化监听端口
 		case 0:
 			Write_W5100(W5100_S0_PORT, S0_Port[0]);	/* Set Local Socket Port number */
 			Write_W5100(W5100_S0_PORT+1, S0_Port[1]);
 			break;
+		
+		//Socket 1 作为客户端，需要初始化本地端口以及连接的远程服务器IP+port
+		case 1:
+			Write_W5100(W5100_S0_PORT, S1_Port[0]);	/* Set Local Socket Port number */
+			Write_W5100(W5100_S0_PORT+1, S1_Port[1]);
+		
+			Write_W5100(W5100_S1_DPORT, S1_DPort[0]);	/* Set Destination port number */
+			Write_W5100(W5100_S1_DPORT+1, S1_DPort[1]);
+
+			for(i=0;i<4;i++)
+				Write_W5100(W5100_S1_DIPR+i, S1_DIP[i]);	/* Set Destination IP Address */
 		default:
 			break;
 	}
 }
+
+/*-----------------------------------------------------------------------------
+                           设置Socket为客户端与远程服务器连接
+当本机Socket工作在客户端模式时，引用该程序，与远程服务器建立连接
+如果设置成功则返回true，否则返回false
+如果启动连接后出现超时中断，则与服务器连接失败，需要重新调用该程序连接
+该程序每调用一次，就与服务器产生一次连接
+------------------------------------------------------------------------------*/
+unsigned char Socket_Connect(SOCKET s)
+{
+	Write_W5100((W5100_S0_MR+s*0x100), S_MR_TCP);		/*设置socket为TCP模式 */
+	Write_W5100((W5100_S0_CR+s*0x100), S_CR_OPEN);		/*打开Socket*/
+
+	if(Read_W5100(W5100_S0_SSR+s*0x100) != S_SSR_INIT)
+	{
+		Write_W5100(W5100_S0_CR+s*0x100, S_CR_CLOSE);	/*打开不成功，关闭Socket，然后返回*/
+		return FALSE;
+	}
+
+	Write_W5100((W5100_S0_CR+s*0x100), S_CR_CONNECT);		/*设置Socket为Connect模式*/
+
+	return TRUE;
+
+	/*至此完成了Socket的打开连接工作，至于它是否与远程服务器建立连接，则需要等待Socket中断，
+	以判断Socket的连接是否成功。参考W5100数据手册的Socket中断状态*/
+}
+
+
 
 /*-----------------------------------------------------------------------------
                            设置Socket作为服务器等待远程主机的连接
@@ -304,6 +346,31 @@ unsigned char Socket_Listen(SOCKET s)
 	/*至此完成了Socket的打开和设置侦听工作，至于远程客户端是否与它建立连接，则需要等待Socket中断，
 	以判断Socket的连接是否成功。参考W5100数据手册的Socket中断状态
 	在服务器侦听模式不需要设置目的IP和目的端口号*/
+}
+
+
+/*-----------------------------------------------------------------------------
+					设置Socket为UDP模式
+如果Socket工作在UDP模式，引用该程序。在UDP模式下，Socket通信不需要建立连接
+如果设置成功则返回true, 否则返回false
+该程序只调用一次，就使W5100设置为UDP模式
+-----------------------------------------------------------------------------*/
+unsigned char Socket_UDP(SOCKET s)
+{
+	Write_W5100((W5100_S0_MR+s*0x100), S_MR_UDP);		/*设置Socket为UDP模式*/
+	Write_W5100((W5100_S0_CR+s*0x100), S_CR_OPEN);		/*打开Socket*/
+
+	if(Read_W5100(W5100_S0_SSR+s*0x100)!=S_SSR_UDP)
+	{
+		Write_W5100((W5100_S0_CR+s*0x100), S_CR_CLOSE);	/*打开不成功，关闭Socket，然后返回*/
+		return FALSE;
+	}
+	else
+		return TRUE;
+
+	/*至此完成了Socket的打开和UDP模式设置，在这种模式下它不需要与远程主机建立连接
+	因为Socket不需要建立连接，所以在发送数据前都可以设置目的主机IP和目的Socket的端口号
+	如果目的主机IP和目的Socket的端口号是固定的，在运行过程中没有改变，那么也可以在这里设置*/
 }
 
 
@@ -417,7 +484,7 @@ void W5100_Interrupt_Process(void)
 
 	}
 	
-	/* Socket事件处理 */
+	/* Socket0事件处理 ，作为服务器接收到网络事件 */
 	if((i & IR_S0_INT) == IR_S0_INT)
 	{
 		j = Read_W5100(W5100_S0_IR);
@@ -445,6 +512,36 @@ void W5100_Interrupt_Process(void)
 		{
 			Write_W5100(W5100_S0_CR, S_CR_CLOSE);		/* 关闭端口，等待重新打开连接 */
 			S0_State = 0;
+		}
+	}
+	
+	/* Socket1事件处理 ，作为客户端接收到网络事件*/
+	if((i & IR_S1_INT) == IR_S1_INT)
+	{
+		j = Read_W5100(W5100_S1_IR);
+		Write_W5100(W5100_S1_IR, j);		/* 回写清中断标志 */
+
+		if(j & S_IR_CON)				/* 在TCP模式下,Socket1成功连接 */
+		{
+			S1_State|=S_CONN;
+		}
+		if(j & S_IR_DISCON)		/* 在TCP模式下Socket1断开连接处理，自己添加代码 */
+		{
+			Write_W5100(W5100_S1_CR, S_CR_CLOSE);		/* 关闭端口，等待重新打开连接 */
+			S1_State = 0;
+		}
+		if(j & S_IR_SENDOK)		/* Socket1数据发送完成，可以再次启动S_tx_process()函数发送数据 */
+		{
+			S1_Data |= S_TRANSMITOK;
+		}
+		if(j & S_IR_RECV)	  	/* Socket1接收到数据，可以启动S_rx_process()函数 */
+		{
+			S1_Data |= S_RECEIVE;
+		}
+		if(j & S_IR_TIMEOUT)	/* Socket1连接或数据传输超时处理 */
+		{
+			Write_W5100(W5100_S1_CR, S_CR_CLOSE);		/*关闭端口，等待重新打开连接 */
+			S1_State = 0;
 		}
 	}
 }
