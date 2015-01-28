@@ -21,6 +21,8 @@ extern unsigned short RxCounter;
 extern unsigned short TxCounter, TxIndex;
 extern unsigned char USART_DataReceive;
 
+extern unsigned char HeartBeat;
+
 enum COMMAND {
 	LOCAL_IP,
 	GATEWAY_IP,
@@ -451,7 +453,7 @@ void TIM1_CC_IRQHandler(void)
 
 /*******************************************************************************
 * Function Name  : TIM2_IRQHandler
-* Description    : This function handles TIM2 global interrupt request.
+* Description    : This function handles TIM2 global interrupt request.（每1毫秒进入一次时钟中断）
 * Input          : None
 * Output         : None
 * Return         : None
@@ -462,6 +464,10 @@ void TIM2_IRQHandler(void)
 	{
 		TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
 		Timer2_Counter++;
+		if (Timer2_Counter % 1000 == 0)
+		{
+			HeartBeat = 1;
+		}
 	}
 }
 

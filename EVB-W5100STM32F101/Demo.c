@@ -12,6 +12,9 @@
 #include "W5100.h"						/* W5100定义 */
 #include "m25p64.h"				/*flash*/
 
+
+unsigned char HeartBeat = 0;
+
 void delay()
 {
 	unsigned int j;
@@ -133,43 +136,47 @@ void W5100_Initialization(void)
 
 /*****************************************************************
 程序名: W5100_Socket_Set
-输入: 无
+输入: 端口号
 输出: 端口状态Socket_State
 返回: 无
 说明：分别设置4个端口，根据端口工作模式，将端口置于TCP服务器、TCP客户端
       或UDP模式。
       从端口状态字节Socket_State可以判断端口的工作情况
 *****************************************************************/
-void W5100_Socket_Set(void)
+void W5100_Socket_Set(SOCKET s)
 {
 	/* 端口 0 */
-	if(S0_State == 0)
+	if (s == 0)
 	{
-		if(S0_Mode == TCP_SERVER)			/* TCP服务器模式 */
+		if(S0_State == 0)
 		{
-			if(Socket_Listen(0) == TRUE)
-				S0_State = S_INIT;
-			else
-				S0_State = 0;
+			if(S0_Mode == TCP_SERVER)			/* TCP服务器模式 */
+			{
+				if(Socket_Listen(0) == TRUE)
+					S0_State = S_INIT;
+				else
+					S0_State = 0;
+			}
 		}
 	}
-	
-	/* 端口 1 */
-	if(S1_State == 0)
+	else if (s == 1)/* 端口 1 */
 	{
-		if(S1_Mode == TCP_SERVER)			/* TCP服务器模式 */
+		if(S1_State == 0)
 		{
-			if(Socket_Listen(1) == TRUE)
-				S1_State = S_INIT;
-			else
-				S1_State = 0;
-		}
-		else if(S1_Mode == TCP_CLIENT)	/* TCP客户端模式 */
-		{
-			if(Socket_Connect(1) == TRUE)
-				S1_State = S_INIT;
-			else
-				S1_State=0;
+			if(S1_Mode == TCP_SERVER)			/* TCP服务器模式 */
+			{
+				if(Socket_Listen(1) == TRUE)
+					S1_State = S_INIT;
+				else
+					S1_State = 0;
+			}
+			else if(S1_Mode == TCP_CLIENT)	/* TCP客户端模式 */
+			{
+				if(Socket_Connect(1) == TRUE)
+					S1_State = S_INIT;
+				else
+					S1_State=0;
+			}
 		}
 	}
 
@@ -195,65 +202,73 @@ void Process_Socket_Data(SOCKET s)
 	
 	size = S_rx_process(s);
 	
-	//FE + cmd
-	if (size == 2)
-	{	
-		cmd = Rx_Buffer[1];
-		if (IS_NCD_OFF_CMD(cmd))
-		{
-			channel = cmd - NCD_OFF_BASE;
-			NetCommand = NCD_OFF_CMD;
-			RELAY_OFF(channel);
-			ret_code = 0x55;		
-		}
-		else if (IS_NCD_ON_CMD(cmd))
-		{
-			channel = cmd - NCD_ON_BASE;
-			NetCommand = NCD_ON_CMD;
-			RELAY_ON(channel);
-			ret_code = 0x55;
-		}
-		else if (IS_NCD_RELAY_SENSE_BASE(cmd))
-		{
-			channel = cmd - NCD_RELAY_SENSE_BASE;
-			switch(NetCommand)
-			{
-				case NCD_OFF_CMD:
-				case NCD_ON_CMD:
-					ret_code = RELAY_SENSE(channel);
-					break;
-				case NCD_ALL_OFF_CMD:
-					ret_code = RELAY_ALL_OFF_SENSE();
-					break;
-				case NCD_ALL_ON_CMD:
-					ret_code = RELAY_ALL_ON_SENSE();
-					break;
-				default:
-					ret_code = RELAY_SENSE(channel);
-					break;
-			}
-			NetCommand = NCD_SENSE_CMD;
-		}
-		else if (IS_NCD_ALL_OFF(cmd))
-		{
-			NetCommand = NCD_ALL_OFF_CMD;	
-			RELAY_ALL_OFF();
-			ret_code = 0x55;	
-		}
-		else if (IS_NCD_ALL_ON(cmd))
-		{
-			NetCommand = NCD_ALL_ON_CMD;	
-			RELAY_ALL_ON();
-			ret_code = 0x55;
-		}
-		else
-		{
-			ret_code = 0;
-		}
-	}
 	
-	Tx_Buffer[0] = ret_code;
-	S_tx_process(s, 1);
+	if(s == 0)
+	{
+		//FE + cmd
+		if (size == 2)
+		{	
+			cmd = Rx_Buffer[1];
+			if (IS_NCD_OFF_CMD(cmd))
+			{
+				channel = cmd - NCD_OFF_BASE;
+				NetCommand = NCD_OFF_CMD;
+				RELAY_OFF(channel);
+				ret_code = 0x55;		
+			}
+			else if (IS_NCD_ON_CMD(cmd))
+			{
+				channel = cmd - NCD_ON_BASE;
+				NetCommand = NCD_ON_CMD;
+				RELAY_ON(channel);
+				ret_code = 0x55;
+			}
+			else if (IS_NCD_RELAY_SENSE_BASE(cmd))
+			{
+				channel = cmd - NCD_RELAY_SENSE_BASE;
+				switch(NetCommand)
+				{
+					case NCD_OFF_CMD:
+					case NCD_ON_CMD:
+						ret_code = RELAY_SENSE(channel);
+						break;
+					case NCD_ALL_OFF_CMD:
+						ret_code = RELAY_ALL_OFF_SENSE();
+						break;
+					case NCD_ALL_ON_CMD:
+						ret_code = RELAY_ALL_ON_SENSE();
+						break;
+					default:
+						ret_code = RELAY_SENSE(channel);
+						break;
+				}
+				NetCommand = NCD_SENSE_CMD;
+			}
+			else if (IS_NCD_ALL_OFF(cmd))
+			{
+				NetCommand = NCD_ALL_OFF_CMD;	
+				RELAY_ALL_OFF();
+				ret_code = 0x55;	
+			}
+			else if (IS_NCD_ALL_ON(cmd))
+			{
+				NetCommand = NCD_ALL_ON_CMD;	
+				RELAY_ALL_ON();
+				ret_code = 0x55;
+			}
+			else
+			{
+				ret_code = 0;
+			}
+		}
+		
+		Tx_Buffer[0] = ret_code;
+		S_tx_process(s, 1);
+	}
+	else if (s == 1)  //客户端接收到数据（状态数据，用来更新塔灯）
+	{
+	
+	}
 }
 
 
@@ -348,8 +363,6 @@ void Process_UART_Data(void)
 u8 val;
 int main(void)
 {
-
-	
 	/* 初始化STM32F103 */
 	System_Initialization();
 	
@@ -375,8 +388,8 @@ int main(void)
 
 	do
 	{
-		/* 设置W5100端口 */
-			W5100_Socket_Set();
+		/* 设置W5100端口 0*/
+		W5100_Socket_Set(0);
 
 		/* 处理W5100中断 */
 		if(W5100_Interrupt)
@@ -389,11 +402,26 @@ int main(void)
 			Process_Socket_Data(0);
 		}
 		
+		/* 如果Socket1接收到数据 */
+		if((S1_Data & S_RECEIVE) == S_RECEIVE)
+		{
+			S1_Data &= ~S_RECEIVE;
+			Process_Socket_Data(1);
+		}
+		
 		/* 如果接收到 USART1 的数据 */
 		if(USART_DataReceive == 1)
 		{
 			USART_DataReceive = 0;
 			Process_UART_Data();
+		}
+		
+		/* 1s 钟保持心跳一次 */
+		if (HeartBeat == 1)
+		{
+			HeartBeat = 0;
+			/* 设置W5100端口 1*/
+			W5100_Socket_Set(1);
 		}
 
 	}while(1);

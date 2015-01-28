@@ -524,6 +524,8 @@ void W5100_Interrupt_Process(void)
 		if(j & S_IR_CON)				/* 在TCP模式下,Socket1成功连接 */
 		{
 			S1_State|=S_CONN;
+			/* 增加网络连接成功的灯塔显示 */
+			//...
 		}
 		if(j & S_IR_DISCON)		/* 在TCP模式下Socket1断开连接处理，自己添加代码 */
 		{
@@ -542,6 +544,8 @@ void W5100_Interrupt_Process(void)
 		{
 			Write_W5100(W5100_S1_CR, S_CR_CLOSE);		/*关闭端口，等待重新打开连接 */
 			S1_State = 0;
+			/* 增加网络连接不成功的灯塔显示 */
+			//...
 		}
 	}
 }
