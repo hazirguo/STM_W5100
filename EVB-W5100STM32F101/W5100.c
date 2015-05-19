@@ -261,7 +261,7 @@ void Socket_Init(SOCKET s)
 	unsigned int i;
 	
 	/*设置分片长度，参考W5100数据手册，该值可以不修改*/
-	Write_W5100((W5100_S0_MSS+s*0x100), 0x05);		/*最大分片字节数=1460*/
+	Write_W5100((W5100_S0_MSS+s*0x100), 0x05);		/*最大分片字节数=1460*/    
 	Write_W5100((W5100_S0_MSS+s*0x100+1), 0xb4);
 
 	/* Set Socket Port number */
@@ -275,8 +275,8 @@ void Socket_Init(SOCKET s)
 		
 		//Socket 1 作为客户端，需要初始化本地端口以及连接的远程服务器IP+port
 		case 1:
-			Write_W5100(W5100_S0_PORT, S1_Port[0]);	/* Set Local Socket Port number */
-			Write_W5100(W5100_S0_PORT+1, S1_Port[1]);
+			Write_W5100(W5100_S1_PORT, S1_Port[0]);	/* Set Local Socket Port number */
+			Write_W5100(W5100_S1_PORT+1, S1_Port[1]);
 		
 			Write_W5100(W5100_S1_DPORT, S1_DPort[0]);	/* Set Destination port number */
 			Write_W5100(W5100_S1_DPORT+1, S1_DPort[1]);
