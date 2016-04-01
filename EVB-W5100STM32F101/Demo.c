@@ -370,6 +370,7 @@ void Usart_Send(uchar *buffer, uchar len)
 
 void Send_Netinfo()
 {
+	uchar Temp_Buffer[100];
 	SPI_FLASH_BufferRead(buffer, FLASH_GATEWAY_IP_ADDR, FLASH_GATEWAY_IP_SIZE);
 	Usart_Send(Temp_Buffer, FLASH_GATEWAY_IP_SIZE);
 	
