@@ -1,11 +1,11 @@
 /*********************************************************************
-Ìá¹©ÉÌ£º³É¶¼ºÆÈ»µç×Ó
-ÍøÕ¾: http://www.hschip.com
+æä¾›å•†ï¼šæˆéƒ½æµ©ç„¶ç”µå­
+ç½‘ç«™: http://www.hschip.com
 
-Ê±¼ä: 2007-11-30
+æ—¶é—´: 2007-11-30
 
-ËµÃ÷: ¸ÃÎÄ¼þÀï°üº¬ËùÓÐSTM32F10xµÄÖÐ¶Ï´¦Àí×Ó³ÌÐò£¬ÓÃ»§¿É¸ù¾ÝÐèÒªÔÚ
-	ÏàÓ¦µÄÖÐ¶Ï×Ó³ÌÐòÖÐÌí¼ÓÄÚÈÝ¡£
+è¯´æ˜Ž: è¯¥æ–‡ä»¶é‡ŒåŒ…å«æ‰€æœ‰STM32F10xçš„ä¸­æ–­å¤„ç†å­ç¨‹åºï¼Œç”¨æˆ·å¯æ ¹æ®éœ€è¦åœ¨
+	ç›¸åº”çš„ä¸­æ–­å­ç¨‹åºä¸­æ·»åŠ å†…å®¹ã€‚
 *********************************************************************/
 
 /* Includes ------------------------------------------------------------------*/
@@ -31,6 +31,7 @@ enum COMMAND {
 	PHYSICAL_ADDR,
 	REMOTE_IP,
 	REMOTE_PORT,
+	READ_NETINFO,
 	COMMAND_NUM
 };
 extern enum COMMAND	 RxCommand;
@@ -453,7 +454,7 @@ void TIM1_CC_IRQHandler(void)
 
 /*******************************************************************************
 * Function Name  : TIM2_IRQHandler
-* Description    : This function handles TIM2 global interrupt request.£¨Ã¿1ºÁÃë½øÈëÒ»´ÎÊ±ÖÓÖÐ¶Ï£©
+* Description    : This function handles TIM2 global interrupt request.ï¼ˆæ¯1æ¯«ç§’è¿›å…¥ä¸€æ¬¡æ—¶é’Ÿä¸­æ–­ï¼‰
 * Input          : None
 * Output         : None
 * Return         : None
@@ -570,15 +571,15 @@ void USART1_IRQHandler(void)
 {
 	if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
 	{
-		/* Çå³ýUSART1½ÓÊÕÖÐ¶Ï±êÖ¾ */
+		/* æ¸…é™¤USART1æŽ¥æ”¶ä¸­æ–­æ ‡å¿— */
 		USART_ClearITPendingBit(USART1, USART_IT_RXNE);
 
 		if(USART_DataReceive == 0) 
 		{
-			/* ´ÓUART1½ÓÊÕ¼Ä´æÆ÷¶ÁÈ¡Ò»¸ö×Ö½ÚµÄÊý¾Ý */
+			/* ä»ŽUART1æŽ¥æ”¶å¯„å­˜å™¨è¯»å–ä¸€ä¸ªå­—èŠ‚çš„æ•°æ® */
 			USART_Rx_Buffer[RxCounter++] = USART_ReceiveData(USART1);
 
-			/* ¼ì²éÊÇ·ñÊÇÊý¾Ý°üµÄÍ· */
+			/* æ£€æŸ¥æ˜¯å¦æ˜¯æ•°æ®åŒ…çš„å¤´ */
 			if(RxCounter == 2)
 			{
 				if((USART_Rx_Buffer[0]!=0xaa) || ( USART_Rx_Buffer[1]!=0x55))
@@ -592,8 +593,8 @@ void USART1_IRQHandler(void)
 				RxCommand = (enum COMMAND)USART_Rx_Buffer[2];
 				RxDataSize = RxDataSizeArr[RxCommand];
 			}
-			/* ¼ì²éÊÇ·ñ½ÓÊÕÍêÕûµÄÊý¾Ý°ü */
-			else if(RxCounter >= RxDataSize)
+			/* æ£€æŸ¥æ˜¯å¦æŽ¥æ”¶å®Œæ•´çš„æ•°æ®åŒ… */
+			if(RxCounter >= RxDataSize)
 			{
 				USART_DataReceive=1;
 			}
