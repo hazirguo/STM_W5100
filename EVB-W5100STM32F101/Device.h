@@ -8,17 +8,17 @@
 
 typedef  unsigned char SOCKET;
 
-/* Timer2¶¨Ê±Æ÷¼ÆÊı */
+/* Timer2å®šæ—¶å™¨è®¡æ•° */
 unsigned int Timer2_Counter;
 
 unsigned char Temp_Buffer[128];
 
-/* UART1Êı¾İ»º³åÇø */
-unsigned char USART_Rx_Buffer[128];			/* UART1½ÓÊÕÊı¾İ»º³åÇø */
-unsigned char USART_Tx_Buffer[128];			/* UART1·¢ËÍÊı¾İ»º³åÇø */
-unsigned short RxCounter;								/* ½ÓÊÕÊı¾İ×Ö½ÚÊıµÄ¼ÆÊı */
-unsigned short TxCounter, TxIndex;			/* ·¢ËÍÊı¾İ×Ö½ÚÊıµÄ¼ÆÊıºÍ·¢ËÍ×Ö½ÚË÷Òı */
-unsigned char USART_DataReceive;				/* ½ÓÊÕµ½Ò»¸öÍêÕûµÄÊı¾İ°ü£¬¸Ã¼Ä´æÆ÷ÖÃ1£¬´¦ÀíÍêÊı¾İºó¸Ã¼Ä´æÆ÷Çå0 */
+/* UART1æ•°æ®ç¼“å†²åŒº */
+unsigned char USART_Rx_Buffer[128];			/* UART1æ¥æ”¶æ•°æ®ç¼“å†²åŒº */
+unsigned char USART_Tx_Buffer[128];			/* UART1å‘é€æ•°æ®ç¼“å†²åŒº */
+unsigned short RxCounter;								/* æ¥æ”¶æ•°æ®å­—èŠ‚æ•°çš„è®¡æ•° */
+unsigned short TxCounter, TxIndex;			/* å‘é€æ•°æ®å­—èŠ‚æ•°çš„è®¡æ•°å’Œå‘é€å­—èŠ‚ç´¢å¼• */
+unsigned char USART_DataReceive;				/* æ¥æ”¶åˆ°ä¸€ä¸ªå®Œæ•´çš„æ•°æ®åŒ…ï¼Œè¯¥å¯„å­˜å™¨ç½®1ï¼Œå¤„ç†å®Œæ•°æ®åè¯¥å¯„å­˜å™¨æ¸…0 */
 
 enum COMMAND {
 	GATEWAY_IP,
@@ -28,78 +28,80 @@ enum COMMAND {
 	LISTEN_PORT,
 	REMOTE_IP,
 	REMOTE_PORT,
+	READ_NETINFO,
 	COMMAND_NUM
 };
 enum COMMAND	 RxCommand;
 
 /*
-ÃüÁî±í£º
+å‘½ä»¤è¡¨ï¼š
 
-ÃüÁîÍ·    | ÃüÁî  | Êı¾İ
+å‘½ä»¤å¤´    | å‘½ä»¤  | æ•°æ®
 ==========|=======|====================
-					|	0x00	|	D1 D2 D3 D4	
-					|	0x01	|	D1 D2 D3 D4	
-					|	0x02	|	D1 D2 D3 D4 D5 D6	
+		|	0x00	|	D1 D2 D3 D4	
+		|	0x01	|	D1 D2 D3 D4	
+		|	0x02	|	D1 D2 D3 D4 D5 D6	
 0Xaa 0x55	|	0x03	|	D1 D2 D3 D4
-					|	0x04	|	D1 D2 	
-					|	0x05	|	D1 D2 D3 D4	
-					|	0x06	|	D1 D2	
+		|	0x04	|	D1 D2 	
+		|	0x05	|	D1 D2 D3 D4	
+		|	0x06	|	D1 D2	
+		|	0x07	|
 */
 
-unsigned short RxDataSizeArr[COMMAND_NUM] = {7, 7, 9, 7, 5, 7, 5};
+unsigned short RxDataSizeArr[COMMAND_NUM] = {7, 7, 9, 7, 5, 7, 5, 3};
 unsigned short RxDataSize = 128;
 
 
-/* ¶Ë¿ÚÊı¾İ»º³åÇø */
-unsigned char Rx_Buffer[2000];				/* ¶Ë¿Ú½ÓÊÕÊı¾İ»º³åÇø */
-unsigned char Tx_Buffer[2000];				/* ¶Ë¿Ú·¢ËÍÊı¾İ»º³åÇø */
+/* ç«¯å£æ•°æ®ç¼“å†²åŒº */
+unsigned char Rx_Buffer[2000];				/* ç«¯å£æ¥æ”¶æ•°æ®ç¼“å†²åŒº */
+unsigned char Tx_Buffer[2000];				/* ç«¯å£å‘é€æ•°æ®ç¼“å†²åŒº */
 
 /* Network parameter registers */
-unsigned char Gateway_IP[4];			/* Íø¹ØIPµØÖ· */
-unsigned char Sub_Mask[4];				/* ×ÓÍøÑÚÂë */
-unsigned char Phy_Addr[6];  			/* ÎïÀíµØÖ· */
-unsigned char Local_IP[4];				/* ±¾»úIPµØÖ· */
-unsigned char Remote_IP[4];				/* Ô¶³ÌIPµØÖ· */
+unsigned char Gateway_IP[4];			/* ç½‘å…³IPåœ°å€ */
+unsigned char Sub_Mask[4];				/* å­ç½‘æ©ç  */
+unsigned char Phy_Addr[6];  			/* ç‰©ç†åœ°å€ */
+unsigned char Local_IP[4];				/* æœ¬æœºIPåœ°å€ */
+unsigned char Remote_IP[4];				/* è¿œç¨‹IPåœ°å€ */
 
 
-unsigned char S0_Port[2];   			/* ¶Ë¿Ú0µÄ¶Ë¿ÚºÅ */
-unsigned char S0_DIP[4];				/* ¶Ë¿Ú0Ä¿µÄIPµØÖ· */
-unsigned char S0_DPort[2];				/* ¶Ë¿Ú0Ä¿µÄ¶Ë¿ÚºÅ */
+unsigned char S0_Port[2];   			/* ç«¯å£0çš„ç«¯å£å· */
+unsigned char S0_DIP[4];				/* ç«¯å£0ç›®çš„IPåœ°å€ */
+unsigned char S0_DPort[2];				/* ç«¯å£0ç›®çš„ç«¯å£å· */
 
-unsigned char S1_Port[2];   			/* ¶Ë¿Ú1µÄ¶Ë¿ÚºÅ */
-unsigned char S1_DIP[4];   				/* ¶Ë¿Ú1Ä¿µÄIPµØÖ· */
-unsigned char S1_DPort[2];				/* ¶Ë¿Ú1Ä¿µÄ¶Ë¿ÚºÅ */
+unsigned char S1_Port[2];   			/* ç«¯å£1çš„ç«¯å£å· */
+unsigned char S1_DIP[4];   				/* ç«¯å£1ç›®çš„IPåœ°å€ */
+unsigned char S1_DPort[2];				/* ç«¯å£1ç›®çš„ç«¯å£å· */
 
-unsigned char S2_Port[2];				/* ¶Ë¿Ú2µÄ¶Ë¿ÚºÅ */
-unsigned char S2_DIP[4];				/* ¶Ë¿Ú2Ä¿µÄIPµØÖ· */
-unsigned char S2_DPort[2];				/* ¶Ë¿Ú2Ä¿µÄ¶Ë¿ÚºÅ */
+unsigned char S2_Port[2];				/* ç«¯å£2çš„ç«¯å£å· */
+unsigned char S2_DIP[4];				/* ç«¯å£2ç›®çš„IPåœ°å€ */
+unsigned char S2_DPort[2];				/* ç«¯å£2ç›®çš„ç«¯å£å· */
 
-unsigned char S3_Port[2];				/* ¶Ë¿Ú3µÄ¶Ë¿ÚºÅ */
-unsigned char S3_DIP[4];				/* ¶Ë¿Ú3Ä¿µÄIPµØÖ· */
-unsigned char S3_DPort[2];				/* ¶Ë¿Ú3Ä¿µÄ¶Ë¿ÚºÅ */
+unsigned char S3_Port[2];				/* ç«¯å£3çš„ç«¯å£å· */
+unsigned char S3_DIP[4];				/* ç«¯å£3ç›®çš„IPåœ°å€ */
+unsigned char S3_DPort[2];				/* ç«¯å£3ç›®çš„ç«¯å£å· */
 
-/* ¶Ë¿ÚµÄÔËĞĞÄ£Ê½ */
+/* ç«¯å£çš„è¿è¡Œæ¨¡å¼ */
 unsigned char S0_Mode;
 unsigned char S1_Mode;
 unsigned char S2_Mode;
 unsigned char S3_Mode;
-	#define TCP_SERVER		0x00		/* TCP·şÎñÆ÷Ä£Ê½ */
-	#define TCP_CLIENT		0x01		/* TCP¿Í»§¶ËÄ£Ê½ */
-	#define UDP_MODE		0x02		/* UDPÄ£Ê½ */
+	#define TCP_SERVER		0x00		/* TCPæœåŠ¡å™¨æ¨¡å¼ */
+	#define TCP_CLIENT		0x01		/* TCPå®¢æˆ·ç«¯æ¨¡å¼ */
+	#define UDP_MODE		0x02		/* UDPæ¨¡å¼ */
 
-unsigned char S0_State;				/* ¶Ë¿Ú0×´Ì¬¼ÇÂ¼ */
-unsigned char S1_State;				/* ¶Ë¿Ú1×´Ì¬¼ÇÂ¼ */
-unsigned char S2_State;				/* ¶Ë¿Ú2×´Ì¬¼ÇÂ¼ */
-unsigned char S3_State;				/* ¶Ë¿Ú3×´Ì¬¼ÇÂ¼ */
-	#define S_INIT	0x01				/* ¶Ë¿ÚÍê³É³õÊ¼»¯ */
-	#define S_CONN	0x02				/* ¶Ë¿ÚÍê³ÉÁ¬½Ó£¬¿ÉÒÔÕı³£´«ÊäÊı¾İ */
+unsigned char S0_State;				/* ç«¯å£0çŠ¶æ€è®°å½• */
+unsigned char S1_State;				/* ç«¯å£1çŠ¶æ€è®°å½• */
+unsigned char S2_State;				/* ç«¯å£2çŠ¶æ€è®°å½• */
+unsigned char S3_State;				/* ç«¯å£3çŠ¶æ€è®°å½• */
+	#define S_INIT	0x01				/* ç«¯å£å®Œæˆåˆå§‹åŒ– */
+	#define S_CONN	0x02				/* ç«¯å£å®Œæˆè¿æ¥ï¼Œå¯ä»¥æ­£å¸¸ä¼ è¾“æ•°æ® */
 
-unsigned char S0_Data;			/* ¶Ë¿Ú0½ÓÊÕºÍ·¢ËÍÊı¾İµÄ×´Ì¬ */
-unsigned char S1_Data;			/* ¶Ë¿Ú1½ÓÊÕºÍ·¢ËÍÊı¾İµÄ×´Ì¬ */
-unsigned char S2_Data;			/* ¶Ë¿Ú2½ÓÊÕºÍ·¢ËÍÊı¾İµÄ×´Ì¬ */
-unsigned char S3_Data;			/* ¶Ë¿Ú3½ÓÊÕºÍ·¢ËÍÊı¾İµÄ×´Ì¬ */
-	#define S_RECEIVE		0x01		/* ¶Ë¿Ú½ÓÊÕµ½Ò»¸öÊı¾İ°ü */
-	#define S_TRANSMITOK	0x02		/* ¶Ë¿Ú·¢ËÍÒ»¸öÊı¾İ°üÍê³É */
+unsigned char S0_Data;			/* ç«¯å£0æ¥æ”¶å’Œå‘é€æ•°æ®çš„çŠ¶æ€ */
+unsigned char S1_Data;			/* ç«¯å£1æ¥æ”¶å’Œå‘é€æ•°æ®çš„çŠ¶æ€ */
+unsigned char S2_Data;			/* ç«¯å£2æ¥æ”¶å’Œå‘é€æ•°æ®çš„çŠ¶æ€ */
+unsigned char S3_Data;			/* ç«¯å£3æ¥æ”¶å’Œå‘é€æ•°æ®çš„çŠ¶æ€ */
+	#define S_RECEIVE		0x01		/* ç«¯å£æ¥æ”¶åˆ°ä¸€ä¸ªæ•°æ®åŒ… */
+	#define S_TRANSMITOK	0x02		/* ç«¯å£å‘é€ä¸€ä¸ªæ•°æ®åŒ…å®Œæˆ */
 
 unsigned char W5100_Interrupt;
 
