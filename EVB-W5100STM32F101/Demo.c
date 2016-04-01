@@ -1,15 +1,15 @@
 /*********************************************************************************
-	Ìá¹©ÉÌ£º³É¶¼ºÆÈ»µç×Ó
-	Íø  Ö·£ºhttp://www.hschip.com
-	Ê±  ¼ä: 2007-11-30
+	æä¾›å•†ï¼šæˆéƒ½æµ©ç„¶ç”µå­
+	ç½‘  å€ï¼šhttp://www.hschip.com
+	æ—¶  é—´: 2007-11-30
 *********************************************************************************/
-#include <stm32f10x.h>              /* STM32F10x¿â¶¨Òå */
+#include <stm32f10x.h>              /* STM32F10xåº“å®šä¹‰ */
 #include <string.h>
 
 #include "Device.h"
-#include "Net_Parameter.h"				/* ÍøÂçÍ¨ÐÅ²ÎÊý¶¨Òå */
-#include "IO_define.h"					/* ÆÀ¹À°åÓ²¼þ½Ó¿Ú¶¨Òå */
-#include "W5100.h"						/* W5100¶¨Òå */
+#include "Net_Parameter.h"				/* ç½‘ç»œé€šä¿¡å‚æ•°å®šä¹‰ */
+#include "IO_define.h"					/* è¯„ä¼°æ¿ç¡¬ä»¶æŽ¥å£å®šä¹‰ */
+#include "W5100.h"						/* W5100å®šä¹‰ */
 #include "m25p64.h"				/*flash*/
 
 
@@ -25,11 +25,11 @@ void delay()
 }
 
 /**********************************************************************
-³ÌÐòÃû: Delay
-ÊäÈë: ÑÓÊ±ÏµÊý£¬µ¥Î»ÎªºÁÃë
-Êä³ö: ÎÞ
-·µ»Ø: ÎÞ
-ËµÃ÷£ºÑÓÊ±ÊÇÀûÓÃTimer2¶¨Ê±Æ÷²úÉúµÄ1ºÁÃëµÄ¼ÆÊýÀ´ÊµÏÖµÄ
+ç¨‹åºå: Delay
+è¾“å…¥: å»¶æ—¶ç³»æ•°ï¼Œå•ä½ä¸ºæ¯«ç§’
+è¾“å‡º: æ— 
+è¿”å›ž: æ— 
+è¯´æ˜Žï¼šå»¶æ—¶æ˜¯åˆ©ç”¨Timer2å®šæ—¶å™¨äº§ç”Ÿçš„1æ¯«ç§’çš„è®¡æ•°æ¥å®žçŽ°çš„
 **********************************************************************/
 void Delay(unsigned int d)
 {
@@ -46,18 +46,18 @@ void Delay(unsigned int d)
 }
 
 /**********************************************************************
-³ÌÐòÃû: Load_Net_Parameters
-ÊäÈë: ÎÞ
-Êä³ö: ÎÞ
-·µ»Ø: ÎÞ
-ËµÃ÷£º´Ó24LC01ÖÐ¶ÁÈ¡ÍøÂçÍ¨ÐÅ²ÎÊý,ÕâÐ©²ÎÊý°üÀ¨: Íø¹ØIP£¬×ÓÍøÑÚÂë£¬ ÎïÀíµØÖ·£¬
-	  ±¾»úIPµØÖ·¡£ÆÀ¹À°å¿ª·ÅÁËW5100µÄ4¸ö¶Ë¿Ú£¬Òò´Ë»¹Òª·Ö±ð¶ÁÈ¡4¸ö¶Ë¿ÚµÄ¶Ë¿Ú
-	  ºÅ¡¢Ä¿µÄIPµØÖ·ºÍÄ¿µÄ¶Ë¿ÚºÅ(Ö»ÓÐÔÚTCP¿Í»§¶ËºÍUDPÊ±ÓÐÐ§)¡£
+ç¨‹åºå: Load_Net_Parameters
+è¾“å…¥: æ— 
+è¾“å‡º: æ— 
+è¿”å›ž: æ— 
+è¯´æ˜Žï¼šä»Ž24LC01ä¸­è¯»å–ç½‘ç»œé€šä¿¡å‚æ•°,è¿™äº›å‚æ•°åŒ…æ‹¬: ç½‘å…³IPï¼Œå­ç½‘æŽ©ç ï¼Œ ç‰©ç†åœ°å€ï¼Œ
+	  æœ¬æœºIPåœ°å€ã€‚è¯„ä¼°æ¿å¼€æ”¾äº†W5100çš„4ä¸ªç«¯å£ï¼Œå› æ­¤è¿˜è¦åˆ†åˆ«è¯»å–4ä¸ªç«¯å£çš„ç«¯å£
+	  å·ã€ç›®çš„IPåœ°å€å’Œç›®çš„ç«¯å£å·(åªæœ‰åœ¨TCPå®¢æˆ·ç«¯å’ŒUDPæ—¶æœ‰æ•ˆ)ã€‚
 
-	  ¶Ë¿Ú¹¤×÷Ä£Ê½¿ØÖÆ£º0£ºTCP·þÎñÆ÷Ä£Ê½£»1£ºTCP¿Í»§¶ËÄ£Ê½£»2£ºUDPÄ£Ê½
+	  ç«¯å£å·¥ä½œæ¨¡å¼æŽ§åˆ¶ï¼š0ï¼šTCPæœåŠ¡å™¨æ¨¡å¼ï¼›1ï¼šTCPå®¢æˆ·ç«¯æ¨¡å¼ï¼›2ï¼šUDPæ¨¡å¼
 
-	  ÔÚ¶ÁÈ¡²ÎÊýÖ®Ç°£¬ÏÈ¼ì²éJ1×´Ì¬¡£Èç¹ûJ1¶ÌÂ·£¬ÄÇÃ´ÆÀ¹À°å½øÈëÄ¬ÈÏ²ÎÊýÉèÖÃ
-	  ×´Ì¬¡£Ä¬ÈÏ²ÎÊýÐ´Èë24LC01ÖÐ¡£
+	  åœ¨è¯»å–å‚æ•°ä¹‹å‰ï¼Œå…ˆæ£€æŸ¥J1çŠ¶æ€ã€‚å¦‚æžœJ1çŸ­è·¯ï¼Œé‚£ä¹ˆè¯„ä¼°æ¿è¿›å…¥é»˜è®¤å‚æ•°è®¾ç½®
+	  çŠ¶æ€ã€‚é»˜è®¤å‚æ•°å†™å…¥24LC01ä¸­ã€‚
 **********************************************************************/
 void Load_Net_Parameters(void)
 {
@@ -77,19 +77,19 @@ void Load_Net_Parameters(void)
 	}
 	else
 	{
-		/* ¼ÓÔØÍø¹Ø²ÎÊý */
+		/* åŠ è½½ç½‘å…³å‚æ•° */
 		Gateway_IP[0] = GATEWAY_IP_ADDR_1;
 		Gateway_IP[1] = GATEWAY_IP_ADDR_2;
 		Gateway_IP[2] = GATEWAY_IP_ADDR_3;
 		Gateway_IP[3] = GATEWAY_IP_ADDR_4;
 
-		/* ¼ÓÔØ×ÓÍøÑÚÂë */
+		/* åŠ è½½å­ç½‘æŽ©ç  */
 		Sub_Mask[0] = SUBNET_MASK_1;
 		Sub_Mask[1] = SUBNET_MASK_2;
 		Sub_Mask[2] = SUBNET_MASK_3;
 		Sub_Mask[3] = SUBNET_MASK_4;
 
-		/* ¼ÓÔØÎïÀíµØÖ· */
+		/* åŠ è½½ç‰©ç†åœ°å€ */
 		Phy_Addr[0] = PHY_ADDR_1;
 		Phy_Addr[1] = PHY_ADDR_2;
 		Phy_Addr[2] = PHY_ADDR_3;
@@ -97,61 +97,61 @@ void Load_Net_Parameters(void)
 		Phy_Addr[4] = PHY_ADDR_5;
 		Phy_Addr[5] = PHY_ADDR_6;
 
-		/* ¼ÓÔØIPµØÖ· */
+		/* åŠ è½½IPåœ°å€ */
 		Local_IP[0] = LOCAL_IP_ADDR_1;
 		Local_IP[1] = LOCAL_IP_ADDR_2;
 		Local_IP[2] = LOCAL_IP_ADDR_3;
 		Local_IP[3] = LOCAL_IP_ADDR_4;
 
-		/* ¼ÓÔØ¶Ë¿Ú0µÄ¶Ë¿ÚºÅ5000 */
+		/* åŠ è½½ç«¯å£0çš„ç«¯å£å·5000 */
 		S0_Port[0] = S0_PORT_1;  
 		S0_Port[1] = S0_PORT_2; 
 	}
-	/* ¼ÓÔØ¶Ë¿Ú0/1µÄ¹¤×÷Ä£Ê½ */
+	/* åŠ è½½ç«¯å£0/1çš„å·¥ä½œæ¨¡å¼ */
 	S0_Mode = S0_MODE; 
 	S1_Mode = S1_MODE;
 }
 
 /*****************************************************************
-³ÌÐòÃû: W5100_Initialization
-ÊäÈë: ÎÞ
-Êä³ö: ÎÞ
-·µ»Ø: ÎÞ
-ËµÃ÷£ºÏÈ¶ÔW5100³õÊ¼»¯£¬È»ºó¼ì²éÍø¹Ø£¬×îºó·Ö±ð³õÊ¼»¯4¸ö¶Ë¿Ú
+ç¨‹åºå: W5100_Initialization
+è¾“å…¥: æ— 
+è¾“å‡º: æ— 
+è¿”å›ž: æ— 
+è¯´æ˜Žï¼šå…ˆå¯¹W5100åˆå§‹åŒ–ï¼Œç„¶åŽæ£€æŸ¥ç½‘å…³ï¼Œæœ€åŽåˆ†åˆ«åˆå§‹åŒ–4ä¸ªç«¯å£
 *****************************************************************/ 
 void W5100_Initialization(void)
 {
 	W5100_Init();
 
-	/* ¼ì²éÍø¹Ø·þÎñÆ÷ */
+	/* æ£€æŸ¥ç½‘å…³æœåŠ¡å™¨ */
 	Detect_Gateway();
 
-	/* ¶Ë¿Ú0 -- ×÷Îª·þÎñÆ÷*/
+	/* ç«¯å£0 -- ä½œä¸ºæœåŠ¡å™¨*/
 	Socket_Init(0);
 	
-	/* ¶Ë¿Ú1 -- ×÷Îª¿Í»§¶Ë*/
+	/* ç«¯å£1 -- ä½œä¸ºå®¢æˆ·ç«¯*/
 	Socket_Init(1);
 
-	//GPIO_ResetBits(GPIOE, LED_DRIVE); 		/*  ¿ªÆôLEDÖ¸Ê¾µÆ  */
+	//GPIO_ResetBits(GPIOE, LED_DRIVE); 		/*  å¼€å¯LEDæŒ‡ç¤ºç¯  */
 }
 
 /*****************************************************************
-³ÌÐòÃû: W5100_Socket_Set
-ÊäÈë: ¶Ë¿ÚºÅ
-Êä³ö: ¶Ë¿Ú×´Ì¬Socket_State
-·µ»Ø: ÎÞ
-ËµÃ÷£º·Ö±ðÉèÖÃ4¸ö¶Ë¿Ú£¬¸ù¾Ý¶Ë¿Ú¹¤×÷Ä£Ê½£¬½«¶Ë¿ÚÖÃÓÚTCP·þÎñÆ÷¡¢TCP¿Í»§¶Ë
-      »òUDPÄ£Ê½¡£
-      ´Ó¶Ë¿Ú×´Ì¬×Ö½ÚSocket_State¿ÉÒÔÅÐ¶Ï¶Ë¿ÚµÄ¹¤×÷Çé¿ö
+ç¨‹åºå: W5100_Socket_Set
+è¾“å…¥: ç«¯å£å·
+è¾“å‡º: ç«¯å£çŠ¶æ€Socket_State
+è¿”å›ž: æ— 
+è¯´æ˜Žï¼šåˆ†åˆ«è®¾ç½®4ä¸ªç«¯å£ï¼Œæ ¹æ®ç«¯å£å·¥ä½œæ¨¡å¼ï¼Œå°†ç«¯å£ç½®äºŽTCPæœåŠ¡å™¨ã€TCPå®¢æˆ·ç«¯
+      æˆ–UDPæ¨¡å¼ã€‚
+      ä»Žç«¯å£çŠ¶æ€å­—èŠ‚Socket_Stateå¯ä»¥åˆ¤æ–­ç«¯å£çš„å·¥ä½œæƒ…å†µ
 *****************************************************************/
 void W5100_Socket_Set(SOCKET s)
 {
-	/* ¶Ë¿Ú 0 */
+	/* ç«¯å£ 0 */
 	if (s == 0)
 	{
 		if(S0_State == 0)
 		{
-			if(S0_Mode == TCP_SERVER)			/* TCP·þÎñÆ÷Ä£Ê½ */
+			if(S0_Mode == TCP_SERVER)			/* TCPæœåŠ¡å™¨æ¨¡å¼ */
 			{
 				if(Socket_Listen(0) == TRUE)
 					S0_State = S_INIT;
@@ -160,18 +160,18 @@ void W5100_Socket_Set(SOCKET s)
 			}
 		}
 	}
-	else if (s == 1)/* ¶Ë¿Ú 1 */
+	else if (s == 1)/* ç«¯å£ 1 */
 	{
 		if(S1_State == 0)
 		{
-			if(S1_Mode == TCP_SERVER)			/* TCP·þÎñÆ÷Ä£Ê½ */
+			if(S1_Mode == TCP_SERVER)			/* TCPæœåŠ¡å™¨æ¨¡å¼ */
 			{
 				if(Socket_Listen(1) == TRUE)
 					S1_State = S_INIT;
 				else
 					S1_State = 0;
 			}
-			else if(S1_Mode == TCP_CLIENT)	/* TCP¿Í»§¶ËÄ£Ê½ */
+			else if(S1_Mode == TCP_CLIENT)	/* TCPå®¢æˆ·ç«¯æ¨¡å¼ */
 			{
 				if(Socket_Connect(1) == TRUE)
 					S1_State = S_INIT;
@@ -185,15 +185,15 @@ void W5100_Socket_Set(SOCKET s)
 
 
 /*********************************************************************
-³ÌÐòÃû: Process_Socket_Data
-ÊäÈë: ¶Ë¿ÚºÅ
-Êä³ö: ÎÞ
-·µ»Ø:
-ËµÃ÷£º±¾¹ý³ÌÏÈµ÷ÓÃS_rx_process()´ÓW5100µÄ¶Ë¿Ú½ÓÊÕÊý¾Ý»º³åÇø¶ÁÈ¡Êý¾Ý£¬
-	È»ºó½«¶ÁÈ¡µÄÊý¾Ý´ÓRx_Buffer¿½±´µ½Temp_Buffer»º³åÇø½øÐÐ´¦Àí¡£
+ç¨‹åºå: Process_Socket_Data
+è¾“å…¥: ç«¯å£å·
+è¾“å‡º: æ— 
+è¿”å›ž:
+è¯´æ˜Žï¼šæœ¬è¿‡ç¨‹å…ˆè°ƒç”¨S_rx_process()ä»ŽW5100çš„ç«¯å£æŽ¥æ”¶æ•°æ®ç¼“å†²åŒºè¯»å–æ•°æ®ï¼Œ
+	ç„¶åŽå°†è¯»å–çš„æ•°æ®ä»ŽRx_Bufferæ‹·è´åˆ°Temp_Bufferç¼“å†²åŒºè¿›è¡Œå¤„ç†ã€‚
 
-	´¦ÀíÍê±Ï£¬½«Êý¾Ý´ÓTemp_Buffer¿½±´µ½Tx_Buffer»º³åÇø¡£µ÷ÓÃS_tx_process()
-	·¢ËÍÊý¾Ý¡£
+	å¤„ç†å®Œæ¯•ï¼Œå°†æ•°æ®ä»ŽTemp_Bufferæ‹·è´åˆ°Tx_Bufferç¼“å†²åŒºã€‚è°ƒç”¨S_tx_process()
+	å‘é€æ•°æ®ã€‚
 *********************************************************************/
 void Process_Socket_Data(SOCKET s)
 {
@@ -266,7 +266,7 @@ void Process_Socket_Data(SOCKET s)
 		Tx_Buffer[0] = ret_code;
 		S_tx_process(s, 1);
 	}
-	else if (s == 1)  //¿Í»§¶Ë½ÓÊÕµ½Êý¾Ý£¨×´Ì¬Êý¾Ý£¬ÓÃÀ´¸üÐÂËþµÆ£©
+	else if (s == 1)  //å®¢æˆ·ç«¯æŽ¥æ”¶åˆ°æ•°æ®ï¼ˆçŠ¶æ€æ•°æ®ï¼Œç”¨æ¥æ›´æ–°å¡”ç¯ï¼‰
 	{
 	
 	}
@@ -274,13 +274,13 @@ void Process_Socket_Data(SOCKET s)
 
 
 /*********************************************************************
-³ÌÐòÃû: Process_UART_Data
-ÊäÈë: ÎÞ
-Êä³ö: ÎÞ
-·µ»Ø:
-ËµÃ÷£º±¾¹ý³ÌÏÈ½«UARTµÄÊý¾Ý´ÓUART_Rx_Buffer¿½±´µ½Temp_Buffer»º³åÇø½øÐÐ´¦Àí¡£
+ç¨‹åºå: Process_UART_Data
+è¾“å…¥: æ— 
+è¾“å‡º: æ— 
+è¿”å›ž:
+è¯´æ˜Žï¼šæœ¬è¿‡ç¨‹å…ˆå°†UARTçš„æ•°æ®ä»ŽUART_Rx_Bufferæ‹·è´åˆ°Temp_Bufferç¼“å†²åŒºè¿›è¡Œå¤„ç†ã€‚
 
-	´¦ÀíÍê±Ï£¬½«Êý¾Ý´ÓTemp_Buffer¿½±´µ½UART_Tx_Buffer»º³åÇøµÈ´ý·¢ËÍÊý¾Ý¡£
+	å¤„ç†å®Œæ¯•ï¼Œå°†æ•°æ®ä»ŽTemp_Bufferæ‹·è´åˆ°UART_Tx_Bufferç¼“å†²åŒºç­‰å¾…å‘é€æ•°æ®ã€‚
 *********************************************************************/
 void Process_UART_Data(void)
 {
@@ -342,29 +342,63 @@ void Process_UART_Data(void)
 			SPI_FLASH_BufferWrite(S1_Port, FLASH_REMOTE_PORT_ADDR, FLASH_REMOTE_PORT_SIZE);
 			delay();
 			break;
+		case READ_NETINFO:
+			Send_Netinfo();
+			return;
 		default:
 			USART_SendData(USART1, 0xFF);
 			return;
 	}
 	
 	//echo to user
-	for(i=0; i<RxCounter; i++)
-	{
-		USART_SendData(USART1, USART_Rx_Buffer[i]);
-		delay();
-	}
+	Usart_Send(USART_Rx_Buffer, RxCounter);
 
 	RxCounter = 0;
 	USART_DataReceive = 0;
 }
 
+
+void Usart_Send(uchar *buffer, uchar len)
+{
+	uchar i = 0;
+	for (i=0; i<len; i++)
+	{
+		USART_SendData(USART1, buffer[i]);
+		delay();
+	}
+}
+
+void Send_Netinfo()
+{
+	SPI_FLASH_BufferRead(buffer, FLASH_GATEWAY_IP_ADDR, FLASH_GATEWAY_IP_SIZE);
+	Usart_Send(Temp_Buffer, FLASH_GATEWAY_IP_SIZE);
+	
+	SPI_FLASH_BufferRead(Temp_Buffer, FLASH_SUBNET_MASK_ADDR, FLASH_SUBNET_MASK_SIZE);
+	Usart_Send(Temp_Buffer, FLASH_SUBNET_MASK_SIZE);
+	
+	SPI_FLASH_BufferRead(Temp_Buffer, FLASH_PHY_ADDR_ADDR, FLASH_PHY_ADDR_SIZE);
+	Usart_Send(Temp_Buffer, FLASH_PHY_ADDR_SIZE);
+	
+	SPI_FLASH_BufferRead(Temp_Buffer, FLASH_LOCAL_IP_ADDR, FLASH_LOCAL_IP_SIZE);
+	Usart_Send(Temp_Buffer, FLASH_LOCAL_IP_SIZE);
+	
+	SPI_FLASH_BufferRead(Temp_Buffer, FLASH_S0_PORT_ADDR, FLASH_S0_PORT_SIZE);
+	Usart_Send(Temp_Buffer, FLASH_S0_PORT_SIZE);
+	
+	SPI_FLASH_BufferRead(Temp_Buffer, FLASH_REMOTE_IP_ADDR, FLASH_REMOTE_IP_SIZE);
+	Usart_Send(Temp_Buffer, FLASH_REMOTE_IP_SIZE);
+	
+	SPI_FLASH_BufferWrite(Temp_Buffer, FLASH_REMOTE_PORT_ADDR, FLASH_REMOTE_PORT_SIZE);
+	Usart_Send(Temp_Buffer, FLASH_REMOTE_PORT_SIZE);
+}
+
 /*****************************************************************
-                            Ö÷³ÌÐò
+                            ä¸»ç¨‹åº
 *****************************************************************/	
 u8 val;
 int main(void)
 {
-	/* ³õÊ¼»¯STM32F103 */
+	/* åˆå§‹åŒ–STM32F103 */
 	System_Initialization();
 	
 	/*
@@ -381,47 +415,47 @@ int main(void)
 	val = GPIO_ReadOutputData(GPIOE);
 	*/
 	
-	/* ¼ì²éÊÇ·ñ½øÈëÄ¬ÈÏ²ÎÊýÉèÖÃ×´Ì¬*/
+	/* æ£€æŸ¥æ˜¯å¦è¿›å…¥é»˜è®¤å‚æ•°è®¾ç½®çŠ¶æ€*/
 	Load_Net_Parameters();
 	
-	/* ³õÊ¼»¯W5100 */
+	/* åˆå§‹åŒ–W5100 */
 	W5100_Initialization();
 
 	do
 	{
-		/* ÉèÖÃW5100¶Ë¿Ú 0*/
+		/* è®¾ç½®W5100ç«¯å£ 0*/
 		W5100_Socket_Set(0);
 
-		/* ´¦ÀíW5100ÖÐ¶Ï */
+		/* å¤„ç†W5100ä¸­æ–­ */
 		if(W5100_Interrupt)
 			W5100_Interrupt_Process();
 
-		/* Èç¹ûSocket0½ÓÊÕµ½Êý¾Ý */
+		/* å¦‚æžœSocket0æŽ¥æ”¶åˆ°æ•°æ® */
 		if((S0_Data & S_RECEIVE) == S_RECEIVE)
 		{
 			S0_Data &= ~S_RECEIVE;
 			Process_Socket_Data(0);
 		}
 		
-		/* Èç¹ûSocket1½ÓÊÕµ½Êý¾Ý */
+		/* å¦‚æžœSocket1æŽ¥æ”¶åˆ°æ•°æ® */
 		if((S1_Data & S_RECEIVE) == S_RECEIVE)
 		{
 			S1_Data &= ~S_RECEIVE;
 			Process_Socket_Data(1);
 		}
 		
-		/* Èç¹û½ÓÊÕµ½ USART1 µÄÊý¾Ý */
+		/* å¦‚æžœæŽ¥æ”¶åˆ° USART1 çš„æ•°æ® */
 		if(USART_DataReceive == 1)
 		{
 			USART_DataReceive = 0;
 			Process_UART_Data();
 		}
 		
-		/* 1s ÖÓ±£³ÖÐÄÌøÒ»´Î */
+		/* 1s é’Ÿä¿æŒå¿ƒè·³ä¸€æ¬¡ */
 		if (HeartBeat == 1)
 		{
 			HeartBeat = 0;
-			/* ÉèÖÃW5100¶Ë¿Ú 1*/
+			/* è®¾ç½®W5100ç«¯å£ 1*/
 			W5100_Socket_Set(1);
 		}
 
